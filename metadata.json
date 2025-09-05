@@ -1,0 +1,5 @@
+{
+  "name": "Swiss Property Finder AI",
+  "description": "An Airbnb-style real estate search application to find properties in Switzerland based on various criteria, including simulated travel times. It features a map and list view, enhanced with AI-powered neighborhood descriptions.",
+  "requestFramePermissions": []
+}
