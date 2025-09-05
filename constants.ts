@@ -9,4 +9,3 @@ export const ZURICH_BOUNDS = {
     maxLat: 47.43,
 };
 
-export const GEOAPIFY_API_KEY = '';

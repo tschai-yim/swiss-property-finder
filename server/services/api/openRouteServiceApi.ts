@@ -33,7 +33,7 @@ export const getIsochrone = async (
     const cacheKey = `isochrone-geoapify:${profile}:${coords.lat},${coords.lng}:${maxTravelTimeInMinutes}`;
 
     return cacheService.getOrSet(cacheKey, async () => {
-        const apiUrl = `https://api.geoapify.com/v1/isoline?lat=${coords.lat}&lon=${coords.lng}&type=time&mode=${profile}&traffic=approximated&range=${rangeInSeconds}&apiKey=${GEOAPIFY_API_KEY}`;
+        const apiUrl = `https://api.geoapify.com/v1/isoline?lat=${coords.lat}&lon=${coords.lng}&type=time&mode=${profile}&traffic=approximated&range=${rangeInSeconds}&apiKey=${process.env.GEOAPIFY_API_KEY}`;
         try {
             const response = await fetchGeoapify(apiUrl);
             if (!response.ok) {
@@ -82,7 +82,7 @@ export const getRouteTime = async (
     const cacheKey = `route-geoapify:${profile}:${from.lat},${from.lng}-${to.lat},${to.lng}`;
 
     return cacheService.getOrSet(cacheKey, async () => {
-        const apiUrl = `https://api.geoapify.com/v1/routing?waypoints=${from.lat},${from.lng}|${to.lat},${to.lng}&mode=${profile}&apiKey=${GEOAPIFY_API_KEY}`;
+        const apiUrl = `https://api.geoapify.com/v1/routing?waypoints=${from.lat},${from.lng}|${to.lat},${to.lng}&mode=${profile}&apiKey=${process.env.GEOAPIFY_API_KEY}`;
         try {
             const response = await fetchGeoapify(apiUrl);
             if (!response.ok) {

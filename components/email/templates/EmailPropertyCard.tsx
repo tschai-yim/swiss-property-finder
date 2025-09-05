@@ -1,7 +1,7 @@
 import React from 'react';
 import { Property } from '../../../types';
 import { formatTravelTime, formatRelativeTime, formatDistance } from '../../../utils/formatters';
-import { calculateDistance } from '../../../services/geoUtils';
+import { calculateDistance } from '../../../utils/geoUtils';
 
 interface EmailPropertyCardProps {
     property: Property;

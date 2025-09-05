@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { InfoIcon } from './InfoIcon';
-import { calculateDistance } from '../../services/geoUtils';
+import { calculateDistance } from '../../utils/geoUtils';
 import { formatDistance } from '../../utils/formatters';
 import { SortBy } from '../../types';
 

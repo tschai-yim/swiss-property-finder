@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import FilterBar from './components/FilterBar';
 import ResultsView from './components/ResultsView';
@@ -12,12 +8,9 @@ import { useInteractionState } from './hooks/useInteractionState';
 import { FilterCriteria, FilterBucket, DebugConfig, Property, StoredExcludedProperty } from './types';
 import DebugPopup from './components/DebugPopup';
 import EmailPrototypePopup from './components/email/EmailPrototypePopup';
-import { cacheService } from './services/cache';
-import { exclusionService } from './services/exclusionService';
 import { matchesGeneralFilters, matchesTravelFilters } from './utils/filterUtils';
-import { isPointInPolygon } from './services/geoUtils';
-import { lazyEnrichProperty } from './services/search/propertyEnricher';
-
+import { isPointInPolygon } from './utils/geoUtils';
+import { trpc } from './utils/trpc';
 
 const DEBUG_CONFIG_STORAGE_KEY = 'swissPropertyFinderDebugConfig';
 const ALL_PROVIDERS = ['Homegate', 'Comparis', 'Weegee', 'Tutti.ch', 'MeinWGZimmer', 'WGZimmer.ch'];
@@ -58,12 +51,10 @@ const App: React.FC = () => {
     const [isDebugPopupOpen, setIsDebugPopupOpen] = useState(false);
     const [isEmailPopupOpen, setIsEmailPopupOpen] = useState(false);
     
-    // State for excluded properties, managed by the exclusionService
-    const [excludedProperties, setExcludedProperties] = useState<StoredExcludedProperty[]>(exclusionService.getExclusions());
-    useEffect(() => {
-        const unsubscribe = exclusionService.subscribe(setExcludedProperties);
-        return () => unsubscribe();
-    }, []);
+    const { data: excludedProperties, refetch: refetchExcludedProperties } = trpc.exclusion.getExclusions.useQuery(undefined);
+
+    const addExclusion = trpc.exclusion.addExclusion.useMutation();
+    const removeExclusion = trpc.exclusion.removeExclusion.useMutation();
 
     const excludedPropertiesRef = useRef(excludedProperties);
     useEffect(() => {
@@ -88,9 +79,9 @@ const App: React.FC = () => {
         setDisplayedProperties(properties);
     }, [properties]);
 
-    // Run cache cleanup on initial app load to remove expired items.
+    const cleanupCache = trpc.cache.cleanup.useMutation();
     useEffect(() => {
-        cacheService.cleanup();
+        cleanupCache.mutate();
     }, []);
 
     useEffect(() => {
@@ -106,7 +97,7 @@ const App: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        searchProperties(appliedFilters, debugConfig, excludedPropertiesRef.current);
+        searchProperties(appliedFilters, debugConfig, excludedPropertiesRef.current || []);
     }, [searchProperties, appliedFilters, debugConfig]);
 
     const getCanonicalFiltersString = (f: FilterCriteria): string => {
@@ -153,15 +144,17 @@ const App: React.FC = () => {
     }, [handleSelectProperty]);
 
     const handleExcludeProperty = useCallback((property: Property) => {
-        exclusionService.addExclusion(property);
+        addExclusion.mutate(property, { onSuccess: () => refetchExcludedProperties() });
         setDisplayedProperties(prev => prev.filter(p => p.id !== property.id));
         if (selectedPropertyId === property.id) {
             handleSelectProperty(property.id);
         }
-    }, [selectedPropertyId, handleSelectProperty]);
+    }, [selectedPropertyId, handleSelectProperty, addExclusion, refetchExcludedProperties]);
+
+    const enrichProperty = trpc.property.enrich.useMutation();
 
     const handleRestoreProperty = useCallback(async (propertyToRestore: Property) => {
-        exclusionService.removeExclusion(propertyToRestore.id);
+        removeExclusion.mutate(propertyToRestore.id, { onSuccess: () => refetchExcludedProperties() });
         
         const destinationCoords = searchMetadata?.destinationCoords;
         const isochrones = searchMetadata?.isochrones ?? [];
@@ -182,7 +175,7 @@ const App: React.FC = () => {
         
         // 3. If there are travel filters, enrich the property with travel times and check them
         if (destinationCoords && appliedFilters.travelModes.length > 0) {
-            const enrichedProperty = await lazyEnrichProperty(propertyToRestore, destinationCoords, shouldQueryPublicTransport);
+            const enrichedProperty = await enrichProperty.mutateAsync({ property: propertyToRestore, destinationCoords, shouldQueryPublicTransport });
             if (matchesTravelFilters(enrichedProperty, appliedFilters)) {
                 setDisplayedProperties(prev => [...prev, enrichedProperty]);
             }
@@ -191,7 +184,7 @@ const App: React.FC = () => {
             setDisplayedProperties(prev => [...prev, propertyToRestore]);
         }
 
-    }, [searchMetadata, appliedFilters, debugConfig]);
+    }, [searchMetadata, appliedFilters, debugConfig, removeExclusion, refetchExcludedProperties, enrichProperty]);
 
 
     return (
@@ -212,7 +205,7 @@ const App: React.FC = () => {
                 debugConfig={debugConfig}
                 onToggleDebugPopup={() => setIsDebugPopupOpen(p => !p)}
                 onOpenEmailPopup={() => setIsEmailPopupOpen(true)}
-                excludedProperties={excludedProperties}
+                excludedProperties={excludedProperties || []}
                 onRestoreProperty={handleRestoreProperty}
                 destinationCoords={searchMetadata?.destinationCoords || null}
                 onFocusPropertyOnMap={setTempMapPin}
@@ -222,7 +215,7 @@ const App: React.FC = () => {
                     onClose={() => setIsEmailPopupOpen(false)}
                     filters={appliedFilters}
                     debugConfig={debugConfig}
-                    excludedProperties={excludedPropertiesRef.current}
+                    excludedProperties={excludedPropertiesRef.current || []}
                 />
             )}
             {isDebugPopupOpen && (
@@ -247,7 +240,7 @@ const App: React.FC = () => {
                         searchMetadata={searchMetadata}
                         sortBy={sortBy}
                         onSortChange={handleSortChange}
-                        onEnrichProperty={(id) => enrichPropertyOnDemand(id, debugConfig)}
+                        
                         enrichingIds={enrichingIds}
                         onExcludeProperty={handleExcludeProperty}
                     />

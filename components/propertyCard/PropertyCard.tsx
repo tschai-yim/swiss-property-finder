@@ -14,7 +14,7 @@ interface PropertyCardProps {
     destinationCoords: { lat: number; lng: number } | null;
     onSelect: (id: string) => void;
     onHover: (id: string | null) => void;
-    onEnrich: (id: string) => void;
+    
     onExclude?: (property: Property) => void;
     onRestore?: (property: Property) => void;
     onFocus?: (property: Property) => void;
@@ -29,7 +29,7 @@ const CreationDateDisplay: React.FC<{ createdAt: Date | undefined, sortBy: SortB
 );
 
 
-const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, travelModes, sortBy, destinationCoords, onSelect, onHover, onEnrich, onExclude, onRestore, onFocus, isExcludedView = false }) => {
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, travelModes, sortBy, destinationCoords, onSelect, onHover, onExclude, onRestore, onFocus, isExcludedView = false }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const imageUrls = property.imageUrls ?? [];
@@ -145,7 +145,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                                 property={property}
                                 travelModes={travelModes}
                                 sortBy={sortBy}
-                                onEnrich={() => onEnrich(property.id)}
+                                
                             />
                         )}
                          

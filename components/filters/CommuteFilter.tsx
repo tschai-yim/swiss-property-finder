@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { FilterCriteria, TravelMode, IsochroneData } from '../../types';
-import { fetchAddressSuggestions } from '../../services/api/geoApi';
 import { useDebounce } from '../../hooks/useDebounce';
 import { BikeIcon, TrainIcon, CarIcon, WalkIcon } from '../icons';
 import { TravelModeControl } from './TravelModeControl';
+import { trpc } from '../../utils/trpc';
 
 interface CommuteFilterProps {
     filters: FilterCriteria;
@@ -14,13 +13,14 @@ interface CommuteFilterProps {
 }
 
 export const CommuteFilter: React.FC<CommuteFilterProps> = ({ filters, onFilterChange, onHoverTravelMode, isochrones }) => {
-    const [suggestions, setSuggestions] = useState<{ display_name: string }[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [destinationQuery, setDestinationQuery] = useState(filters.destination);
     const [editingMode, setEditingMode] = useState<TravelMode | null>(null);
     const modeControlRefs = useRef<Record<TravelMode, HTMLDivElement | null>>({ public: null, bike: null, car: null, walk: null });
     const destinationInputRef = useRef<HTMLDivElement>(null);
     const debouncedDestinationQuery = useDebounce(destinationQuery, 400);
+
+    const { data: suggestions, refetch: fetchAddressSuggestions } = trpc.geo.fetchAddressSuggestions.useQuery(debouncedDestinationQuery, { enabled: false });
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -42,13 +42,9 @@ export const CommuteFilter: React.FC<CommuteFilterProps> = ({ filters, onFilterC
 
     useEffect(() => {
         if (showSuggestions && debouncedDestinationQuery && debouncedDestinationQuery.length > 2) {
-            fetchAddressSuggestions(debouncedDestinationQuery).then(results => {
-                setSuggestions(results);
-            });
-        } else {
-            setSuggestions([]);
+            fetchAddressSuggestions();
         }
-    }, [debouncedDestinationQuery, showSuggestions]);
+    }, [debouncedDestinationQuery, showSuggestions, fetchAddressSuggestions]);
 
     const handleSuggestionClick = (suggestion: string) => {
         setDestinationQuery(suggestion);
@@ -76,9 +72,9 @@ export const CommuteFilter: React.FC<CommuteFilterProps> = ({ filters, onFilterC
                     autoComplete="off"
                     onFocus={() => setShowSuggestions(true)}
                 />
-                {showSuggestions && suggestions.length > 0 && (
+                {showSuggestions && suggestions && suggestions.length > 0 && (
                     <ul className="absolute top-full left-0 right-0 bg-white border mt-1 rounded-md shadow-lg z-[4000] max-h-60 overflow-y-auto">
-                        {suggestions.map((s, i) => (
+                        {suggestions.map((s: { display_name: string }, i: number) => (
                             <li key={i} className="px-4 py-2 cursor-pointer text-gray-800 hover:bg-rose-50" onClick={() => handleSuggestionClick(s.display_name)}>
                                 {s.display_name}
                             </li>

@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Property, SortBy, FilterCriteria } from '../types';
 import { getBestTravelTime } from '../utils/propertyUtils';
-import { calculateDistance } from '../services/geoUtils';
+import { calculateDistance } from '../utils/geoUtils';
 
 export const useInteractionState = (
     properties: Property[],

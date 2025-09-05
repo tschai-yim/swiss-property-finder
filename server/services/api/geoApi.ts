@@ -8,7 +8,7 @@ export const fetchAddressSuggestions = async (query: string): Promise<{ display_
     
     const cacheKey = `suggestions-geoapify:${query}`;
     return cacheService.getOrSet(cacheKey, async () => {
-        const apiUrl = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&filter=countrycode:ch&limit=5&apiKey=${GEOAPIFY_API_KEY}`;
+        const apiUrl = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&filter=countrycode:ch&limit=5&apiKey=${process.env.GEOAPIFY_API_KEY}`;
         try {
             const response = await fetchGeoapify(apiUrl);
             if (!response.ok) return [];
@@ -29,7 +29,7 @@ export const fetchAddressSuggestions = async (query: string): Promise<{ display_
 export const geocodeAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
     const cacheKey = `geocode-geoapify:${address}`;
     return cacheService.getOrSet(cacheKey, async () => {
-        const apiUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(address)}&filter=countrycode:ch&limit=1&apiKey=${GEOAPIFY_API_KEY}`;
+        const apiUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(address)}&filter=countrycode:ch&limit=1&apiKey=${process.env.GEOAPIFY_API_KEY}`;
         try {
             const response = await fetchGeoapify(apiUrl);
             if (!response.ok) return null;

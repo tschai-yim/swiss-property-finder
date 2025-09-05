@@ -53,7 +53,7 @@ export const findNearbyCities = async (coords: { lat: number; lng: number }, rad
         // Increased the server-side timeout for the query itself.
         const overpassQuery = `[out:json][timeout:40];(node["place"~"^(city|town|village)$"](around:${radiusMeters},${coords.lat},${coords.lng}););out body;`;
         
-        const geoapifyApiUrl = `https://api.geoapify.com/v1/geocode/reverse?lat=${coords.lat}&lon=${coords.lng}&apiKey=${GEOAPIFY_API_KEY}`;
+        const geoapifyApiUrl = `https://api.geoapify.com/v1/geocode/reverse?lat=${coords.lat}&lon=${coords.lng}&apiKey=${process.env.GEOAPIFY_API_KEY}`;
 
         try {
             const [overpassData, geoapifyResponse] = await Promise.all([

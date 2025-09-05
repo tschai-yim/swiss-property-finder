@@ -3,7 +3,7 @@ import { Property, FilterCriteria, SortBy } from '../types';
 import { BikeIcon, TrainIcon, CarIcon, WalkIcon } from './icons';
 import { formatTravelTime, formatDistance } from '../utils/formatters';
 import { getBestTravelTime } from '../utils/propertyUtils';
-import { calculateDistance } from '../services/geoUtils';
+import { calculateDistance } from '../utils/geoUtils';
 
 interface PropertyCardProps {
     property: Property;

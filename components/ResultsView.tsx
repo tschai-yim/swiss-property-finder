@@ -17,7 +17,7 @@ interface ResultsViewProps {
     onSortChange: (sortBy: SortBy) => void;
     onSelectProperty: (id: string) => void;
     onHoverProperty: (id: string | null) => void;
-    onEnrichProperty: (id: string) => void;
+    
     onExcludeProperty: (property: Property) => void;
 }
 
@@ -34,7 +34,6 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     onSortChange,
     onSelectProperty,
     onHoverProperty,
-    onEnrichProperty,
     onExcludeProperty,
 }) => {
 
@@ -62,7 +61,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                                 destinationCoords={searchMetadata?.destinationCoords || null}
                                 onSelect={onSelectProperty}
                                 onHover={onHoverProperty}
-                                onEnrich={onEnrichProperty}
+                                
                                 onExclude={onExcludeProperty}
                             />
                         ))}

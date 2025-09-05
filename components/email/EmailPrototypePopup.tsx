@@ -1,9 +1,6 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
-import ReactDOMServer from 'react-dom/server.browser';
 import { FilterCriteria, DebugConfig, StoredExcludedProperty } from '../../types';
-import { fetchNewPropertiesForEmail } from '../../services/email/emailSearchService';
-import { NewPropertyAlertEmail } from './templates/NewPropertyAlertEmail';
+import { trpc } from '../../utils/trpc';
 
 interface EmailPrototypePopupProps {
     onClose: () => void;
@@ -21,32 +18,28 @@ export const EmailPrototypePopup: React.FC<EmailPrototypePopupProps> = ({ onClos
     const [displayState, setDisplayState] = useState<DisplayState>('initial');
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
 
+    const fetchNewProperties = trpc.email.fetchNewProperties.useMutation();
+    const renderEmailTemplate = trpc.email.renderEmailTemplate.useMutation();
+
     const handleSearch = useCallback(async () => {
         setDisplayState('loading');
         setEmailHtml('');
         
-        const cutoffDate = new Date();
-        cutoffDate.setDate(cutoffDate.getDate() - daysCutoff);
-        cutoffDate.setHours(0, 0, 0, 0);
-
         try {
-            const report = await fetchNewPropertiesForEmail(
+            const report = await fetchNewProperties.mutateAsync({
                 filters, 
                 debugConfig, 
                 excludedProperties, 
-                cutoffDate,
-                (message) => setLoadingMessage(message)
-            );
+                daysCutoff,
+            });
 
-            const htmlString = ReactDOMServer.renderToStaticMarkup(
-                <NewPropertyAlertEmail 
-                    properties={report.properties}
-                    metadata={report.metadata}
-                    daysCutoff={daysCutoff}
-                />
-            );
+            const html = await renderEmailTemplate.mutateAsync({
+                properties: report.properties,
+                metadata: report.metadata,
+                daysCutoff,
+            });
             
-            setEmailHtml(`<!DOCTYPE html>${htmlString}`);
+            setEmailHtml(html);
             setDisplayState('preview');
 
         } catch (e) {
@@ -57,7 +50,7 @@ export const EmailPrototypePopup: React.FC<EmailPrototypePopupProps> = ({ onClos
             setEmailHtml(errorHtml);
             setDisplayState('error');
         }
-    }, [daysCutoff, filters, debugConfig, excludedProperties]);
+    }, [daysCutoff, filters, debugConfig, excludedProperties, fetchNewProperties, renderEmailTemplate]);
 
     const isLoading = useMemo(() => displayState === 'loading', [displayState]);
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Property, SortBy, FilterCriteria } from '../../types';
 import { InfoIcon } from './InfoIcon';
@@ -11,10 +10,9 @@ interface PrimaryMetricDisplayProps {
     property: Property;
     travelModes: FilterCriteria['travelModes'];
     sortBy: SortBy;
-    onEnrich: () => void;
 }
 
-export const PrimaryMetricDisplay: React.FC<PrimaryMetricDisplayProps> = ({ property, travelModes, sortBy, onEnrich }) => {
+export const PrimaryMetricDisplay: React.FC<PrimaryMetricDisplayProps> = ({ property, travelModes, sortBy }) => {
     const getDisplayInfo = () => {
         const iconMap = { public: <TrainIcon />, bike: <BikeIcon />, car: <CarIcon />, walk: <WalkIcon />};
 
@@ -48,7 +46,7 @@ export const PrimaryMetricDisplay: React.FC<PrimaryMetricDisplayProps> = ({ prop
     const isBold = sortBy.startsWith('travelTime');
 
     return (
-        <div className="relative group/metric flex items-center text-sm text-gray-600" onMouseEnter={onEnrich}>
+        <div className="relative group/metric flex items-center text-sm text-gray-600">
             {React.cloneElement(displayInfo.icon, { className: "h-5 w-5 mr-1.5 text-gray-500" })}
             <span className={isBold ? 'font-bold' : ''}>{formatTravelTime(displayInfo.time)}</span>
             <TravelTimePopover property={property} travelModes={travelModes} />

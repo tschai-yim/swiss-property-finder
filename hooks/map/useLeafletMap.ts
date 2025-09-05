@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 // Declare Leaflet in the global scope
 declare const L: any;
 
-export const useLeafletMap = (mapContainerRef: React.RefObject<HTMLDivElement>) => {
+export const useLeafletMap = (mapContainerRef: React.RefObject<HTMLDivElement | null>) => {
     const mapRef = useRef<any>(null);
 
     useEffect(() => {

@@ -61,7 +61,7 @@ export const ExcludedProperties: React.FC<ExcludedPropertiesProps> = ({ excluded
                                     destinationCoords={destinationCoords}
                                     onSelect={() => {}}
                                     onHover={() => {}}
-                                    onEnrich={() => {}}
+                                    
                                     onFocus={(p) => onFocusPropertyOnMap({ lat: p.lat, lng: p.lng })}
                                     onRestore={() => onRestoreProperty(prop as Property)}
                                     isExcludedView={true}

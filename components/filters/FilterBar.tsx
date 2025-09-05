@@ -1,9 +1,9 @@
 
 
 import React from 'react';
-import { FilterCriteria, IsochroneData, DebugConfig, StoredExcludedProperty, Property } from '../types';
-import { CommuteFilter } from './filters/CommuteFilter';
-import { FilterBucketList } from './filters/FilterBucketList';
+import { FilterCriteria, IsochroneData, DebugConfig, StoredExcludedProperty, Property } from '../../types';
+import { CommuteFilter } from './CommuteFilter';
+import { FilterBucketList } from './FilterBucketList';
 
 interface FilterBarProps {
     filters: FilterCriteria;
