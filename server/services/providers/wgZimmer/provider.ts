@@ -1,7 +1,7 @@
-import { Property } from '../../../types';
+import { Property } from '../../../../types';
 import { PropertyProvider, SearchContext } from '../providerTypes';
-import { matchesGeneralFilters } from '../../../utils/filterUtils';
-import { isPointInBoundingBox } from '../../geoUtils';
+import { matchesGeneralFilters } from '../../../../utils/filterUtils';
+import { isPointInBoundingBox } from '../../../../utils/geoUtils';
 import { fetchAllWgZimmerListings, mapWgZimmerToProperty } from './api';
 
 export const wgZimmerProvider: PropertyProvider = {
@@ -36,7 +36,7 @@ export const wgZimmerProvider: PropertyProvider = {
         let finalProperties = propertiesInArea.filter(p => matchesGeneralFilters(p, filters));
 
         if (createdSince) {
-            finalProperties = finalProperties.filter(p => p.createdAt && p.createdAt >= createdSince);
+            finalProperties = finalProperties.filter(p => p.createdAt && new Date(p.createdAt) >= createdSince);
         }
 
         if (finalProperties.length > 0) {

@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { PropertyProviderInfo } from '../../types';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRoute, faArrowUpRightFromSquare, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 
 interface ActionButtonsProps {
     providers: PropertyProviderInfo[];
@@ -44,7 +46,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ providers, destina
             onClick={(e) => e.stopPropagation()}
             className={`${buttonBaseClasses} bg-rose-500 hover:bg-rose-600 rounded-lg`}
         >
-            <i className="fa-solid fa-route mr-1.5"></i>
+            <FontAwesomeIcon icon={faRoute} className="mr-1.5" />
             <span>Route</span>
         </a>
     );
@@ -59,7 +61,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ providers, destina
                     onClick={(e) => e.stopPropagation()}
                     className={`${buttonBaseClasses} ${primaryButtonClasses}`}
                 >
-                    <i className="fa-solid fa-arrow-up-right-from-square mr-1.5"></i>
+                    <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="mr-1.5" />
                     <span>{primaryProvider.name}</span>
                 </a>
                 {routeButton}
@@ -78,7 +80,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ providers, destina
                         onClick={(e) => e.stopPropagation()}
                         className={`${buttonBaseClasses} ${primaryButtonClasses} flex-grow min-w-0`}
                     >
-                        <i className="fa-solid fa-arrow-up-right-from-square mr-1.5"></i>
+                        <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="mr-1.5" />
                         <span className="truncate">{primaryProvider.name}</span>
                     </a>
                     <button
@@ -88,7 +90,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ providers, destina
                         aria-expanded={isDropdownOpen}
                         aria-label="Other providers"
                     >
-                        <i className={`fa-solid fa-chevron-down transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}></i>
+                        <FontAwesomeIcon icon={faChevronDown} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
                 </div>
                 {isDropdownOpen && (

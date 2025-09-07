@@ -1,6 +1,6 @@
-import { Property, FilterBucket } from '../../../types';
+import { Property, FilterBucket } from '../../../../types';
 import { PropertyProvider, RequestManager, SearchContext } from '../providerTypes';
-import { matchesAdvancedFilters } from '../../../utils/filterUtils';
+import { matchesAdvancedFilters } from '../../../../utils/filterUtils';
 import { fetchTuttiApi, mapTuttiToProperty } from './api';
 
 export const tuttiProvider: PropertyProvider = {
@@ -32,7 +32,7 @@ export const tuttiProvider: PropertyProvider = {
                         let finalProperties = mappedProperties.filter(p => matchesAdvancedFilters(p, filters));
 
                         if (createdSince) {
-                            const recentProperties = finalProperties.filter(p => p.createdAt && p.createdAt >= createdSince);
+                            const recentProperties = finalProperties.filter(p => p.createdAt && new Date(p.createdAt) >= createdSince);
                             // If the entire batch is older than the cutoff, we can stop for this city/bucket.
                             if (finalProperties.length > 0 && recentProperties.length === 0) {
                                 finalProperties = []; // Clear the batch

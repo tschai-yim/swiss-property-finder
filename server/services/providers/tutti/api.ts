@@ -1,10 +1,10 @@
 
-import { Property, FilterBucket } from '../../../types';
+import { Property, FilterBucket } from '../../../../types';
 import { TuttiApiResponse, TuttiListingNode } from './types';
 import { RequestManager } from '../providerTypes';
 import { proxy } from '../../proxy';
 import { RateLimiter } from '../../rateLimiter';
-import { isTemporaryBasedOnText } from '../../../utils/textUtils';
+import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
 
 const TUTTI_API_URL = 'https://www.tutti.ch/api/v10/graphql';
 const TUTTI_API_HEADERS = {
@@ -109,7 +109,7 @@ export const mapTuttiToProperty = (item: TuttiListingNode): Property | null => {
         lng: item.coordinates.longitude,
         imageUrl: imageUrls[0] || '',
         imageUrls: imageUrls,
-        createdAt,
+        createdAt: createdAt?.toISOString(),
         type: propertyType,
         rentalDuration: isTemporaryBasedOnText(fullText) ? 'temporary' : 'permanent',
         genderPreference: 'any', // Not specified

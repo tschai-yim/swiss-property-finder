@@ -20,7 +20,7 @@ export interface Property {
   travelTimePublic?: number | null;
   travelTimeCar?: number | null;
   travelTimeWalk?: number | null;
-  createdAt?: Date;
+  createdAt?: string;
 
   // New: Fields for advanced filtering
   type: 'property' | 'sharedFlat';

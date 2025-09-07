@@ -1,4 +1,4 @@
-import { Property, DebugConfig } from '../../types';
+import { Property, DebugConfig } from '../../../types';
 import { PropertyProvider, RequestManager } from '../providers/providerTypes';
 
 // Import all providers

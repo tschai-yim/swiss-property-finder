@@ -21,7 +21,7 @@ const initialFilters: FilterCriteria = {
             price: { min: '', max: '1000' },
             rooms: { min: '', max: '' },
             size: { min: '', max: '' },
-            roommates: { min: '', max: '' },
+            roommates: { min: '', max: '', },
         },
         {
             id: crypto.randomUUID(),
@@ -29,23 +29,23 @@ const initialFilters: FilterCriteria = {
             price: { min: '', max: '1000' },
             rooms: { min: '1', max: '' },
             size: { min: '', max: '' },
-            roommates: { min: '', max: '' },
+            roommates: { min: '', max: '', },
         },
         {
             id: crypto.randomUUID(),
             type: 'property',
             price: { min: '', max: '1800' },
             rooms: { min: '3', max: '' },
-            size: { min: '', max: '' },
-            roommates: { min: '', max: '' },
+            size: { min: '', max: '', },
+            roommates: { min: '', max: '', },
         },
         {
             id: crypto.randomUUID(),
             type: 'property',
             price: { min: '', max: '2700' },
             rooms: { min: '4', max: '' },
-            size: { min: '', max: '' },
-            roommates: { min: '', max: '' },
+            size: { min: '', max: '', },
+            roommates: { min: '', max: '', },
         },
     ],
     destination: 'ETH Hauptgebäude (HG), Rämistrasse 101, 8092 Zurich, Switzerland', 
@@ -62,6 +62,7 @@ const initialFilters: FilterCriteria = {
 };
 
 const loadFiltersFromStorage = (): FilterCriteria | null => {
+    if (typeof window === 'undefined') return null;
     try {
         const stored = localStorage.getItem(FILTER_STORAGE_KEY);
         if (!stored) return null;
@@ -77,7 +78,7 @@ const loadFiltersFromStorage = (): FilterCriteria | null => {
         if (parsed.buckets && parsed.buckets.length > 0) {
             parsed.buckets.forEach((b: any) => {
                 if (!b.type) b.type = 'property';
-                if (!b.roommates) b.roommates = { min: '', max: '' };
+                if (!b.roommates) b.roommates = { min: '', max: '', };
             });
         }
         
@@ -89,6 +90,7 @@ const loadFiltersFromStorage = (): FilterCriteria | null => {
 };
 
 const saveFiltersToStorage = (filters: FilterCriteria) => {
+    if (typeof window === 'undefined') return;
     try {
         localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
     } catch (e) {
@@ -97,8 +99,9 @@ const saveFiltersToStorage = (filters: FilterCriteria) => {
 };
 
 export const useFilters = () => {
-    const [filters, setFilters] = useState<FilterCriteria>(loadFiltersFromStorage() || initialFilters);
+    const [filters, setFilters] = useState<FilterCriteria>(() => loadFiltersFromStorage() || initialFilters);
     const [editingBucketId, setEditingBucketId] = useState<string | null>(() => {
+        if (typeof window === 'undefined') return null;
         try {
             const stored = localStorage.getItem(UI_STATE_STORAGE_KEY);
             return stored ? (JSON.parse(stored).editingBucketId ?? null) : null;
@@ -116,6 +119,7 @@ export const useFilters = () => {
 
     // Persist UI state (like which filter is open) to localStorage
     useEffect(() => {
+        if (typeof window === 'undefined') return;
         try {
             localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify({ editingBucketId }));
         } catch (e) {

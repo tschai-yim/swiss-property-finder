@@ -1,10 +1,10 @@
 
-import { Property } from '../../../types';
+import { Property } from '../../../../types';
 import { HomegateResult, HomegateApiResponse } from './types';
 import { proxy } from '../../proxy';
 import { RequestManager } from '../providerTypes';
 import { RateLimiter } from '../../rateLimiter';
-import { isTemporaryBasedOnText } from '../../../utils/textUtils';
+import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
 
 const HOMEGATE_API_URL = 'https://api.homegate.ch/search/listings';
 const homegateRateLimiter = new RateLimiter(2); // 2 requests per second
@@ -38,7 +38,7 @@ export const mapHomegateToProperty = (item: HomegateResult): Property | null => 
         lng: listing.address.geoCoordinates.longitude,
         imageUrl: imageUrls[0] || '',
         imageUrls: imageUrls,
-        createdAt: new Date(listing.meta.createdAt),
+        createdAt: new Date(listing.meta.createdAt).toISOString(),
         type: 'property', // Homegate lists properties and houses
         rentalDuration: isTemporaryBasedOnText(fullText) ? 'temporary' : 'permanent',
         genderPreference: 'any', // Not specified

@@ -1,10 +1,10 @@
 
-import { Property } from '../../../types';
+import { Property } from '../../../../types';
 import { RequestManager } from '../providerTypes';
 import { WgZimmerResponse, WgZimmerRoom } from './types';
 import { proxy } from '../../proxy';
 import { RateLimiter } from '../../rateLimiter';
-import { isTemporaryBasedOnText } from '../../../utils/textUtils';
+import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
 
 const WGZIMMER_API_URL = 'https://www.wg-app.ch/wg-app-rooms/live-ads.json';
 const WGZIMMER_AUTH_TOKEN = 'd2ctYXBwLWFsbC1yb29tczpqa25kc2ZodW5rw6clJmRzamhrZHNoamcyMzQ=';
@@ -50,7 +50,7 @@ export const mapWgZimmerToProperty = (item: WgZimmerRoom): Property | null => {
         lng,
         imageUrl: imageUrls[0] || '',
         imageUrls,
-        createdAt: new Date(item.creationDate),
+        createdAt: new Date(item.creationDate).toISOString(),
         type: 'sharedFlat',
         rentalDuration: rentalDuration,
         genderPreference: 'any', // Not specified

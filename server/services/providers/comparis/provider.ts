@@ -1,8 +1,8 @@
 import { PropertyProvider } from '../providerTypes';
 import { fetchComparisApi, mapComparisToProperty } from './api';
-import { Property, FilterBucket } from '../../../types';
+import { Property, FilterBucket } from '../../../../types';
 import { enrichWithGeocoding } from '../../search/propertyEnricher';
-import { matchesAdvancedFilters } from '../../../utils/filterUtils';
+import { matchesAdvancedFilters } from '../../../../utils/filterUtils';
 
 export const comparisProvider: PropertyProvider = {
     name: 'Comparis',
@@ -32,7 +32,7 @@ export const comparisProvider: PropertyProvider = {
                         let finalProperties = geocodedProperties.filter(p => matchesAdvancedFilters(p, filters));
 
                         if (createdSince) {
-                            const recentProperties = finalProperties.filter(p => p.createdAt && p.createdAt >= createdSince);
+                            const recentProperties = finalProperties.filter(p => p.createdAt && new Date(p.createdAt) >= createdSince);
                             // If the entire batch is older than the cutoff, we can stop for this city/bucket.
                             if (finalProperties.length > 0 && recentProperties.length === 0) {
                                 finalProperties = []; // Clear the batch

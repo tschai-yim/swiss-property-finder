@@ -1,11 +1,10 @@
-
-import { Property } from '../../../types';
+import { Property } from '../../../../types';
 import { proxy } from '../../proxy';
 import { RequestManager } from '../providerTypes';
 import { cacheService, LONG_CACHE_TTL_MS } from '../../cache';
 import { WeegeeListing, WeegeeResponse, WeegeeDetailResponse, EnrichedWeegeeListing } from './types';
 import { RateLimiter } from '../../rateLimiter';
-import { isTemporaryBasedOnText } from '../../../utils/textUtils';
+import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
 
 const WEEGEE_BUILD_ID = 'h-LRGq2CpW9N_IbD1D7ea';
 const weegeeRateLimiter = new RateLimiter(2); // 2 requests per second
@@ -95,7 +94,7 @@ export const mapWeegeeToProperty = (item: EnrichedWeegeeListing): Property | nul
         lng: item.address_lon,
         imageUrl: imageUrls[0] || '',
         imageUrls: imageUrls,
-        createdAt: creationData ? (calculateCreatedAt(creationData) ?? undefined) : undefined,
+        createdAt: creationData ? (calculateCreatedAt(creationData)?.toISOString() ?? undefined) : undefined,
         type: 'sharedFlat',
         rentalDuration,
         genderPreference: item.women_only ? 'female' : 'any',
@@ -143,7 +142,7 @@ export const fetchWeegeeStubs = async (city: string, requestManager: RequestMana
     return cityListings;
 };
 
-export const fetchWeegeeDetails = async (listing: WeegeeListing) => {
+export const fetchWeegeeDetails = async (listing: WeegeeListing): Promise<EnrichedWeegeeListing | null> => {
     const detailUrl = `https://weegee.ch/_next/data/${WEEGEE_BUILD_ID}/en/wg/-/${listing.public_id}.json`;
     const cacheKey = `weegee-detail:${listing.public_id}`;
 
@@ -160,5 +159,5 @@ export const fetchWeegeeDetails = async (listing: WeegeeListing) => {
     } catch (e) {
         console.error(`Failed to fetch details for weegee listing ${listing.public_id}`, e);
     }
-    return { ...listing, pictures: [], temporarily: true, women_only: false, created: undefined, available_to: null };
+    return null;
 };

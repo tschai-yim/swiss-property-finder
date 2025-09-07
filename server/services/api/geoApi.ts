@@ -1,6 +1,6 @@
 
 import { cacheService, LONG_CACHE_TTL_MS } from '../cache';
-import { GEOAPIFY_API_KEY } from '../../constants';
+
 import { fetchGeoapify } from './geoapifyService';
 
 export const fetchAddressSuggestions = async (query: string): Promise<{ display_name: string }[]> => {

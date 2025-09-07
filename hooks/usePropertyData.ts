@@ -21,7 +21,7 @@ export const usePropertyData = () => {
         try {
             const result = await searchMutation.mutateAsync({ currentFilters, debugConfig, excludedProperties });
             setProperties(result.properties);
-            setSearchMetadata(result.metadata);
+            setSearchMetadata({ ...result.metadata, filteredResults: result.metadata?.filteredResults ?? 0 } as SearchMetadata);
         } catch (error) {
             console.error("An error occurred during property search:", error);
             setLoadingMessage("An error occurred during the search.");
@@ -29,11 +29,10 @@ export const usePropertyData = () => {
             setIsLoading(false);
             setLoadingMessage('Search complete.');
         }
-    }, [searchMutation]);
+        // MUST pass the mutateAsync not the searchMutation to avoid infinite render loops
+    }, [searchMutation.mutateAsync]);
     
-    useEffect(() => {
-        setSearchMetadata(prev => prev ? { ...prev, filteredResults: properties.length } : null);
-    }, [properties]);
+    
 
     return {
         properties,

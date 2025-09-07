@@ -1,8 +1,8 @@
-import { FilterCriteria, SearchEvent, IsochroneData, City, BoundingBox } from '../../types';
+import { FilterCriteria, SearchEvent, IsochroneData, City, BoundingBox } from '../../../types';
 import { geocodeAddress } from '../api/geoApi';
 import { findNearbyCities, findCitiesInBoundingBox } from '../api/locationApi';
 import { getIsochrone } from '../api/openRouteServiceApi';
-import { getPolygonBoundingBox, mergeBoundingBoxes, padBoundingBox, doesPolygonIntersectBoundingBox, calculateDistance } from '../geoUtils';
+import { getPolygonBoundingBox, mergeBoundingBoxes, padBoundingBox, doesPolygonIntersectBoundingBox, calculateDistance } from '../../../utils/geoUtils';
 
 const getCityFromSearch = (search: string): string => {
     const parts = search.split(',');

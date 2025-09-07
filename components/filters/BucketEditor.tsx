@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { FilterBucket } from '../../types';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRightLeft } from '@fortawesome/free-solid-svg-icons';
 
 interface BucketEditorProps {
     bucket: FilterBucket;
@@ -57,7 +59,7 @@ export const BucketEditor: React.FC<BucketEditorProps> = ({ bucket, onUpdate, on
                 title="Click to switch bucket type"
             >
                 <h4 className="font-bold text-gray-800">{bucket.type === 'property' ? 'Property Filter' : 'Shared Flat Filter'}</h4>
-                <i className="fa-solid fa-right-left text-gray-400"></i>
+                <FontAwesomeIcon icon={faRightLeft} className="text-gray-400" />
             </div>
             
             <div>

@@ -6,6 +6,8 @@ import React from 'react';
 import { FilterCriteria, IsochroneData, DebugConfig, StoredExcludedProperty, Property } from '../types';
 import { CommuteFilter } from './filters/CommuteFilter';
 import { FilterBucketList } from './filters/FilterBucketList';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMagnifyingGlass, faCheck, faHouseChimney, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 
 // Fix: Add 'onToggleBucketType' and extend 'onUpdateBucket' to match the props required by FilterBucketList.
 interface FilterBarProps {
@@ -59,13 +61,13 @@ const FilterBar: React.FC<FilterBarProps> = (props) => {
                 >
                     {/* Active state content: "Search" */}
                     <span className={`${contentSpanBase} ${isDirty ? 'opacity-100' : 'opacity-0'}`}>
-                        <i className="fa-solid fa-magnifying-glass mr-2"></i>
+                        <FontAwesomeIcon icon={faMagnifyingGlass} className="mr-2" />
                         Search
                     </span>
                     
                     {/* Inactive state content: "Searched". Positioned absolutely to overlap. */}
                      <span className={`${contentSpanBase} absolute ${!isDirty ? 'opacity-100' : 'opacity-0'}`}>
-                        <i className="fa-solid fa-check mr-2"></i>
+                        <FontAwesomeIcon icon={faCheck} className="mr-2" />
                         Searched
                     </span>
                 </button>
@@ -85,7 +87,7 @@ const FilterBar: React.FC<FilterBarProps> = (props) => {
                             onClick={props.onToggleDebugPopup}
                             title={`Click to configure debug settings. Debug mode is currently: ${props.debugConfig.enabled ? 'ON' : 'OFF'}`}
                         >
-                            <i className={`fa-solid fa-house-chimney text-3xl transition-colors ${!props.debugConfig.enabled ? 'text-rose-500' : 'text-gray-400'}`}></i>
+                            <FontAwesomeIcon icon={faHouseChimney} className={`text-3xl transition-colors ${!props.debugConfig.enabled ? 'text-rose-500' : 'text-gray-400'}`} />
                             <h1 className="text-2xl font-bold text-gray-800 tracking-tight hidden sm:block">
                                 Swiss Property Finder
                             </h1>
@@ -96,7 +98,7 @@ const FilterBar: React.FC<FilterBarProps> = (props) => {
                             className="text-gray-400 hover:text-rose-500 transition-colors"
                             aria-label="Generate Email Prototype"
                         >
-                            <i className="fa-solid fa-envelope text-2xl"></i>
+                            <FontAwesomeIcon icon={faEnvelope} className="text-2xl" />
                         </button>
                     </div>
                     <div className="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-auto">

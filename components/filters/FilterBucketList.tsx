@@ -6,6 +6,8 @@ import { BucketEditor } from './BucketEditor';
 import { summarizeBucket } from '../../utils/formatters';
 import { AdvancedFilterControl } from './AdvancedFilterControl';
 import { ExcludedProperties } from './ExcludedProperties';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBed, faHouse } from '@fortawesome/free-solid-svg-icons';
 
 interface FilterBucketListProps {
     filters: FilterCriteria;
@@ -35,9 +37,9 @@ export const FilterBucketList: React.FC<FilterBucketListProps> = (props) => {
                         className={`flex items-center gap-2 py-1.5 px-3 rounded-full text-sm font-semibold transition-colors ${editingBucketId === bucket.id ? 'bg-rose-500 text-white' : 'bg-rose-100 text-rose-800 hover:bg-rose-200'}`}
                     >
                         {bucket.type === 'sharedFlat' ? (
-                            <i className="fa-solid fa-bed"></i>
+                            <FontAwesomeIcon icon={faBed} />
                         ) : (
-                            <i className="fa-solid fa-house"></i>
+                            <FontAwesomeIcon icon={faHouse} />
                         )}
                         <span>{summarizeBucket(bucket)}</span>
                         <span onClick={(e) => { e.stopPropagation(); onRemoveBucket(bucket.id); }} className="text-rose-300 hover:text-white">&times;</span>

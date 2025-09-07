@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Property, StoredExcludedProperty } from '../../types';
 import PropertyCard from '../propertyCard/PropertyCard';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBan } from '@fortawesome/free-solid-svg-icons';
 
 interface ExcludedPropertiesProps {
     excludedProperties: StoredExcludedProperty[];
@@ -39,7 +41,7 @@ export const ExcludedProperties: React.FC<ExcludedPropertiesProps> = ({ excluded
                 className="flex items-center gap-2 py-1.5 px-3 rounded-full text-sm font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
                 title="View and manage excluded listings"
             >
-                <i className="fa-solid fa-ban"></i>
+                <FontAwesomeIcon icon={faBan} />
                 <span>Excluded ({excludedProperties.length})</span>
             </button>
 

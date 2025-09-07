@@ -2,16 +2,18 @@ import React from 'react';
 import { Property } from '../../../types';
 import { formatTravelTime, formatRelativeTime, formatDistance } from '../../../utils/formatters';
 import { calculateDistance } from '../../../utils/geoUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrainSubway, faBicycle, faCar, faPersonWalking, faImage, faUsers, faDoorOpen, faRulerCombined, faCalendarPlus, faLocationArrow, faArrowUpRightFromSquare, faRoute } from '@fortawesome/free-solid-svg-icons';
 
 interface EmailPropertyCardProps {
     property: Property;
     destinationCoords: { lat: number; lng: number } | null;
 }
 
-const InfoIcon: React.FC<{ iconClass: string; children: React.ReactNode }> = ({ iconClass, children }) => (
+const InfoIcon: React.FC<{ icon: any; children: React.ReactNode }> = ({ icon, children }) => (
     <div className="flex items-center text-sm text-gray-600">
         <span className="inline-flex justify-center items-center w-5 h-5 mr-1.5">
-            <i className={`${iconClass} text-gray-500 text-base`}></i>
+            <FontAwesomeIcon icon={icon} className="text-gray-500 text-base" />
         </span>
         {children}
     </div>
@@ -19,18 +21,18 @@ const InfoIcon: React.FC<{ iconClass: string; children: React.ReactNode }> = ({ 
 
 const HorizontalTravelTimes: React.FC<{ property: Property }> = ({ property }) => {
     const travelTimeMap = [
-        { mode: 'public', time: property.travelTimePublic, iconClass: 'fa-solid fa-train-subway' },
-        { mode: 'bike', time: property.travelTimeBike, iconClass: 'fa-solid fa-bicycle' },
-        { mode: 'car', time: property.travelTimeCar, iconClass: 'fa-solid fa-car' },
-        { mode: 'walk', time: property.travelTimeWalk, iconClass: 'fa-solid fa-person-walking' },
+        { mode: 'public', time: property.travelTimePublic, icon: faTrainSubway },
+        { mode: 'bike', time: property.travelTimeBike, icon: faBicycle },
+        { mode: 'car', time: property.travelTimeCar, icon: faCar },
+        { mode: 'walk', time: property.travelTimeWalk, icon: faPersonWalking },
     ];
 
     return (
         <div className="flex flex-wrap justify-around items-center text-xs text-gray-700 mt-3 pt-3 border-t border-gray-200">
-            {travelTimeMap.map(({ mode, time, iconClass }) => (
+            {travelTimeMap.map(({ mode, time, icon }) => (
                  <div key={mode} className="flex items-center mx-2 my-1">
                     <span className="inline-flex justify-center items-center w-5 h-5 mr-1">
-                        <i className={`${iconClass} text-gray-500 text-sm`}></i>
+                        <FontAwesomeIcon icon={icon} className="text-gray-500 text-sm" />
                     </span>
                     <span className="font-semibold">{formatTravelTime(time)}</span>
                 </div>
@@ -56,7 +58,7 @@ export const EmailPropertyCard: React.FC<EmailPropertyCardProps> = ({ property, 
                 </a>
             ) : (
                 <div className="h-48 w-full bg-gray-200 flex items-center justify-center">
-                    <i className="fa-solid fa-image text-gray-400 text-5xl"></i>
+                    <FontAwesomeIcon icon={faImage} className="text-gray-400 text-5xl" />
                 </div>
             )}
             <div className="p-3 flex flex-col flex-grow">
@@ -71,16 +73,16 @@ export const EmailPropertyCard: React.FC<EmailPropertyCardProps> = ({ property, 
                 <div className="mt-auto pt-3">
                      <div className="flex justify-around items-center">
                         {property.type === 'sharedFlat' ? (
-                            <InfoIcon iconClass="fa-solid fa-users">
+                            <InfoIcon icon={faUsers}>
                                 {property.roommates != null ? `${property.roommates} flatmates` : '-'}
                             </InfoIcon>
                         ) : (
-                            <InfoIcon iconClass="fa-solid fa-door-open">{property.rooms} rooms</InfoIcon>
+                            <InfoIcon icon={faDoorOpen}>{property.rooms} rooms</InfoIcon>
                         )}
-                        <InfoIcon iconClass="fa-solid fa-ruler-combined">{property.size ? `${property.size} m²` : '-'}</InfoIcon>
-                         <InfoIcon iconClass="fa-solid fa-calendar-plus">{formatRelativeTime(property.createdAt)}</InfoIcon>
+                        <InfoIcon icon={faRulerCombined}>{property.size ? `${property.size} m²` : '-'}</InfoIcon>
+                         <InfoIcon icon={faCalendarPlus}>{formatRelativeTime(property.createdAt ? new Date(property.createdAt) : undefined)}</InfoIcon>
                         {distance !== null && (
-                            <InfoIcon iconClass="fa-solid fa-location-arrow">{formatDistance(distance)}</InfoIcon>
+                            <InfoIcon icon={faLocationArrow}>{formatDistance(distance)}</InfoIcon>
                         )}
                     </div>
                     {destinationCoords && <HorizontalTravelTimes property={property} />}
@@ -95,7 +97,7 @@ export const EmailPropertyCard: React.FC<EmailPropertyCardProps> = ({ property, 
                             rel="noopener noreferrer"
                             className="flex-grow text-center bg-rose-500 text-white font-bold py-2 px-2 rounded-lg hover:bg-rose-600 text-sm flex items-center justify-center"
                         >
-                            <i className="fa-solid fa-arrow-up-right-from-square mr-1.5"></i>
+                            <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="mr-1.5" />
                             <span className="truncate">{provider.name}</span>
                         </a>
                     ))}
@@ -106,7 +108,7 @@ export const EmailPropertyCard: React.FC<EmailPropertyCardProps> = ({ property, 
                             rel="noopener noreferrer"
                             className="flex-grow text-center bg-gray-600 text-white font-bold py-2 px-2 rounded-lg hover:bg-gray-700 text-sm flex items-center justify-center"
                         >
-                            <i className="fa-solid fa-route mr-1.5"></i>
+                            <FontAwesomeIcon icon={faRoute} className="mr-1.5" />
                             <span>Route</span>
                         </a>
                     )}

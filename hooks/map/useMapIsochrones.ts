@@ -1,10 +1,9 @@
 
 import { useEffect, useRef } from 'react';
 import { IsochroneData, FilterCriteria } from '../../types';
+import L from 'leaflet';
+import { union } from 'polygon-clipping';
 
-// Declare Leaflet and the polygon clipping library in the global scope
-declare const L: any;
-declare const polygonClipping: any;
 
 const mergedIsochroneStyle = { color: '#f43f5e', fillColor: '#f43f5e', weight: 2, opacity: 0.6, fillOpacity: 0.15 };
 const highlightIsochroneStyle = mergedIsochroneStyle;
@@ -38,13 +37,16 @@ export const useMapIsochrones = (map: any, isochrones: IsochroneData[] | null, h
         baseIsochroneLayerRef.current = null;
         highlightIsochroneLayerRef.current = null;
 
-        if (!isochrones || isochrones.length === 0 || typeof polygonClipping === 'undefined') return;
+        if (!isochrones || isochrones.length === 0) return;
 
         const allPolygonsForClipping = isochrones.map(i => [i.polygon]);
 
-        const mergedGeoJsonPolygon = allPolygonsForClipping.length > 1
-            ? allPolygonsForClipping.reduce((acc, p) => polygonClipping.union(acc, p))
-            : allPolygonsForClipping[0];
+        let mergedGeoJsonPolygon: number[][][] | number[][][][] = allPolygonsForClipping[0];
+        if (allPolygonsForClipping.length > 1) {
+            for (let i = 1; i < allPolygonsForClipping.length; i++) {
+                mergedGeoJsonPolygon = union(mergedGeoJsonPolygon as any, allPolygonsForClipping[i] as any);
+            }
+        }
         
         const leafletMergedCoords = toLeafletCoords(mergedGeoJsonPolygon);
 
@@ -55,7 +57,7 @@ export const useMapIsochrones = (map: any, isochrones: IsochroneData[] | null, h
             // ...and draw the highlighted specific travel mode's area on top
             const hoveredIsochrone = isochrones.find(iso => iso.mode === hoveredTravelMode);
             if (hoveredIsochrone) {
-                const leafletHoveredCoords = hoveredIsochrone.polygon.map(coord => [coord[1], coord[0]]);
+                const leafletHoveredCoords = hoveredIsochrone.polygon.map(coord => [coord[1], coord[0]]) as any;
                 highlightIsochroneLayerRef.current = L.polygon(leafletHoveredCoords, highlightIsochroneStyle).addTo(map);
                 highlightIsochroneLayerRef.current.bringToFront();
             }

@@ -1,7 +1,7 @@
 
-import { GEOAPIFY_API_KEY } from '../../constants';
+
 import { cacheService, LONG_CACHE_TTL_MS } from '../cache';
-import { IsochroneData } from '../../types';
+import { IsochroneData } from '../../../types';
 import { fetchGeoapify } from './geoapifyService';
 
 type GeoapifyProfile = 'drive' | 'bicycle' | 'walk' | 'approximated_transit';

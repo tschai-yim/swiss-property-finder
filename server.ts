@@ -4,6 +4,7 @@ import next from 'next';
 import { appRouter } from './server/routers/_app';
 import { createNextApiHandler } from '@trpc/server/adapters/next';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { createContext } from './server/trpc'; // Import createContext
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
@@ -14,7 +15,7 @@ const handle = app.getRequestHandler();
 
 const trpcHandler = createNextApiHandler({
   router: appRouter,
-  createContext: () => ({}),
+  createContext, // Use the imported createContext
 });
 
 app.prepare().then(() => {

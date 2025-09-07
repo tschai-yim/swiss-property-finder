@@ -26,8 +26,8 @@ export const useInteractionState = (
         return [...properties].sort((a, b) => {
             switch (sortBy) {
                 case 'latest':
-                    const timeA = a.createdAt?.getTime() ?? -Infinity;
-                    const timeB = b.createdAt?.getTime() ?? -Infinity;
+                    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : -Infinity;
+                    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : -Infinity;
                     return timeB - timeA;
                 case 'priceAsc':
                     return a.price - b.price;

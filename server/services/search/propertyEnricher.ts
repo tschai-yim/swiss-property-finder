@@ -1,4 +1,4 @@
-import { Property } from '../../types';
+import { Property } from '../../../types';
 import { geocodeAddress } from '../api/geoApi';
 import { getRouteTime } from '../api/openRouteServiceApi';
 import { getPublicTransportTime } from '../api/openDataTransportApi';

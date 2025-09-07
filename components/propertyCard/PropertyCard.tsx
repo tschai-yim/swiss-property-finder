@@ -5,6 +5,8 @@ import { PrimaryMetricDisplay } from './PrimaryMetricDisplay';
 import { DistanceDisplay } from './DistanceDisplay';
 import { ActionButtons } from './ActionButtons';
 import { formatRelativeTime } from '../../utils/formatters';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalendarPlus, faChevronLeft, faChevronRight, faImage, faTrashCanArrowUp, faBan, faUsers, faDoorOpen, faRulerCombined } from '@fortawesome/free-solid-svg-icons';
 
 interface PropertyCardProps {
     property: Property;
@@ -23,7 +25,7 @@ interface PropertyCardProps {
 
 const CreationDateDisplay: React.FC<{ createdAt: Date | undefined, sortBy: SortBy }> = ({ createdAt, sortBy }) => (
     <InfoIcon>
-        <i className="fa-solid fa-calendar-plus h-5 w-5 mr-1.5 text-gray-500"></i>
+        <FontAwesomeIcon icon={faCalendarPlus} className="h-5 w-5 mr-1.5 text-gray-500" />
         <span className={sortBy === 'latest' ? 'font-bold' : ''}>{formatRelativeTime(createdAt)}</span>
     </InfoIcon>
 );
@@ -64,14 +66,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                                 className="absolute top-1/2 left-2 -translate-y-1/2 z-10 bg-black bg-opacity-50 text-white rounded-full h-8 w-8 flex items-center justify-center opacity-0 group-hover/image-gallery:opacity-100 transition-opacity hover:bg-opacity-75 focus:outline-none"
                                 aria-label="Previous image"
                             >
-                               <i className="fa-solid fa-chevron-left"></i>
+                               <FontAwesomeIcon icon={faChevronLeft} />
                             </button>
                             <button
                                 onClick={handleNextImage}
                                 className="absolute top-1/2 right-2 -translate-y-1/2 z-10 bg-black bg-opacity-50 text-white rounded-full h-8 w-8 flex items-center justify-center opacity-0 group-hover/image-gallery:opacity-100 transition-opacity hover:bg-opacity-75 focus:outline-none"
                                 aria-label="Next image"
                             >
-                               <i className="fa-solid fa-chevron-right"></i>
+                               <FontAwesomeIcon icon={faChevronRight} />
                             </button>
                             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
                                 {imageUrls.slice(0, 5).map((_, index) => ( // Show max 5 dots
@@ -83,7 +85,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                 </div>
             ) : (
                 <div className="h-48 w-full rounded-t-xl bg-gray-200 flex items-center justify-center">
-                    <i className="fa-solid fa-image text-gray-400 text-5xl"></i>
+                    <FontAwesomeIcon icon={faImage} className="text-gray-400 text-5xl" />
                 </div>
             )}
             <div className="p-3 flex flex-col flex-grow">
@@ -98,7 +100,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                                 className="text-gray-400 hover:text-green-600 transition-colors opacity-0 group-hover/card:opacity-100 focus:opacity-100"
                                 aria-label="Restore listing"
                             >
-                                <i className="fa-solid fa-trash-can-arrow-up"></i>
+                                <FontAwesomeIcon icon={faTrashCanArrowUp} />
                             </button>
                         ) : !isExcludedView && onExclude ? (
                             <button
@@ -107,7 +109,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                                 className="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover/card:opacity-100 focus:opacity-100"
                                 aria-label="Exclude listing"
                             >
-                                <i className="fa-solid fa-ban"></i>
+                                <FontAwesomeIcon icon={faBan} />
                             </button>
                         ) : null}
                     </div>
@@ -120,17 +122,17 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                     <div className="flex justify-around items-center">
                         {property.type === 'sharedFlat' ? (
                             <InfoIcon>
-                                <i className="fa-solid fa-users h-5 w-5 mr-1.5 text-gray-500"></i>
+                                <FontAwesomeIcon icon={faUsers} className="h-5 w-5 mr-1.5 text-gray-500" />
                                 {property.roommates != null ? `${property.roommates} flatmates` : '-'}
                             </InfoIcon>
                         ) : (
                              <InfoIcon>
-                                <i className="fa-solid fa-door-open h-5 w-5 mr-1.5 text-gray-500"></i>
+                                <FontAwesomeIcon icon={faDoorOpen} className="h-5 w-5 mr-1.5 text-gray-500" />
                                 {property.rooms} rooms
                             </InfoIcon>
                         )}
                         <InfoIcon>
-                            <i className="fa-solid fa-ruler-combined h-5 w-5 mr-1.5 text-gray-500"></i>
+                            <FontAwesomeIcon icon={faRulerCombined} className="h-5 w-5 mr-1.5 text-gray-500" />
                             {property.size && property.size > 0 ? `${property.size} m²` : '-'}
                         </InfoIcon>
 
@@ -156,7 +158,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                                 sortBy={sortBy}
                             />
                         ) : (
-                            <CreationDateDisplay createdAt={property.createdAt} sortBy={sortBy} />
+                            <CreationDateDisplay createdAt={property.createdAt ? new Date(property.createdAt) : undefined} sortBy={sortBy} />
                         )}
                     </div>
                 </div>

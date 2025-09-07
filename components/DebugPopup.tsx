@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { DebugConfig } from '../types';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 interface DebugPopupProps {
     config: DebugConfig;
@@ -36,7 +38,7 @@ const DebugPopup: React.FC<DebugPopupProps> = ({ config, onConfigChange, onClose
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-bold text-gray-800">Debug Configuration</h3>
                 <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                    <i className="fa-solid fa-times"></i>
+                    <FontAwesomeIcon icon={faTimes} />
                 </button>
             </div>
 

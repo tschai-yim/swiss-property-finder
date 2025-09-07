@@ -1,4 +1,4 @@
-import { TravelMode } from '../../types';
+import { TravelMode } from '../../../types';
 import { getRouteTime } from './openRouteServiceApi';
 import { getPublicTransportTime } from './openDataTransportApi';
 import { cacheService, LONG_CACHE_TTL_MS } from '../cache';

@@ -2,8 +2,7 @@ import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { fetchNewPropertiesForEmail } from '../services/email/emailSearchService';
 import { FilterCriteria, DebugConfig, StoredExcludedProperty, Property, SearchMetadata } from '../../types';
-import ReactDOMServer from 'react-dom/server';
-import { NewPropertyAlertEmail } from '../../components/email/templates/NewPropertyAlertEmail';
+import { renderEmailTemplate } from '../utils/renderEmail';
 
 export const emailRouter = router({
   fetchNewProperties: publicProcedure
@@ -28,13 +27,6 @@ export const emailRouter = router({
     }))
     .mutation(async ({ input }) => {
       const { properties, metadata, daysCutoff } = input;
-      const htmlString = ReactDOMServer.renderToStaticMarkup(
-        <NewPropertyAlertEmail 
-            properties={properties}
-            metadata={metadata}
-            daysCutoff={daysCutoff}
-        />
-      );
-      return `<!DOCTYPE html>${htmlString}`;
+      return renderEmailTemplate(properties, metadata, daysCutoff);
     }),
 });

@@ -1,10 +1,10 @@
 
 
-import { Property, FilterBucket } from '../../../types';
+import { Property, FilterBucket } from '../../../../types';
 import { MeinWGZimmerResultItem, MeinWGZimmerResponse } from './types';
 import { RequestManager } from '../providerTypes';
 import { RateLimiter } from '../../rateLimiter';
-import { isTemporaryBasedOnText } from '../../../utils/textUtils';
+import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
 
 const MEINWGZIMMER_API_URL = 'https://api1.meinwgzimmer.ch/live/classes/Room';
 const MEINWGZIMMER_APP_ID = '94aa8f52080089940731d6952815ec7233b745cc';
@@ -67,7 +67,7 @@ export const mapMeinWGZimmerToProperty = (item: MeinWGZimmerResultItem): Propert
         lng: item.PosLng,
         imageUrl: imageUrl || '',
         imageUrls: imageUrl ? [imageUrl] : [],
-        createdAt: new Date(item.createdAt),
+        createdAt: new Date(item.createdAt).toISOString(),
         type: 'sharedFlat',
         roommates: item.FlatSizeRoommates,
         rentalDuration,

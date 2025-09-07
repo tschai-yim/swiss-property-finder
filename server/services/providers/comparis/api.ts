@@ -1,10 +1,10 @@
 
-import { Property, FilterBucket } from '../../../types';
+import { Property, FilterBucket } from '../../../../types';
 import { ComparisResultItem } from './types';
 import { RequestManager } from '../providerTypes';
 import { proxy } from '../../proxy';
 import { RateLimiter } from '../../rateLimiter';
-import { isTemporaryBasedOnText } from '../../../utils/textUtils';
+import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
 
 const comparisRateLimiter = new RateLimiter(2); // 2 requests per second
 
@@ -78,7 +78,7 @@ export const mapComparisToProperty = (item: ComparisResultItem): Property | null
     lng: 0,
     imageUrl: imageUrl || '',
     imageUrls: imageUrl ? [imageUrl] : [],
-    createdAt,
+    createdAt: createdAt?.toISOString(),
     type: propertyType,
     rentalDuration: isTemporaryBasedOnText(fullText) ? 'temporary' : 'permanent',
     genderPreference: 'any', // Not specified

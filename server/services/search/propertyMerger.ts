@@ -1,5 +1,5 @@
-import { Property, PropertyProviderInfo } from '../../types';
-import { calculateDistance } from '../geoUtils';
+import { Property, PropertyProviderInfo } from '../../../types';
+import { calculateDistance } from '../../../utils/geoUtils';
 
 /**
  * A set of heuristics to determine if two property listings are likely duplicates.

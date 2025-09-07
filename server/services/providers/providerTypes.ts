@@ -1,4 +1,4 @@
-import { Property, City, BoundingBox, GeneralFilters } from '../../types';
+import { Property, City, BoundingBox, GeneralFilters } from '../../../types';
 
 export interface RequestManager {
     count: number;

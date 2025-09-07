@@ -1,12 +1,12 @@
 
-import { Property, FilterCriteria, SearchEvent, GeneralFilters, DebugConfig, StoredExcludedProperty, TravelMode } from '../../types';
-import { isPointInPolygon } from '../geoUtils';
+import { Property, FilterCriteria, SearchEvent, GeneralFilters, DebugConfig, StoredExcludedProperty, TravelMode } from '../../../types';
+import { isPointInPolygon } from '../../../utils/geoUtils';
 import { enrichItemsWithTravelTimes } from '../api/cachedRoutingApi';
 import { PropertySet } from './PropertySet';
 import { determineSearchArea } from './searchAreaService';
 import { getActiveProviders, createRequestManagers, mergeProviderStreams } from './providerService';
 import { SearchContext } from '../providers/providerTypes';
-import { matchesTravelFilters } from '../../utils/filterUtils';
+import { matchesTravelFilters } from '../../../utils/filterUtils';
 
 /**
  * The main orchestrator for property searching. It streams search events (progress, metadata, properties)

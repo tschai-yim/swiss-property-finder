@@ -1,7 +1,8 @@
-import { Property } from '../../../types';
+import { Property } from '../../../../types';
 import { PropertyProvider, SearchContext } from '../providerTypes';
-import { matchesGeneralFilters } from '../../../utils/filterUtils';
+import { matchesGeneralFilters } from '../../../../utils/filterUtils';
 import { mapWeegeeToProperty, fetchWeegeeStubs, fetchWeegeeDetails } from './api';
+import { EnrichedWeegeeListing } from './types';
 
 export const weegeeProvider: PropertyProvider = {
     name: 'Weegee',
@@ -20,7 +21,7 @@ export const weegeeProvider: PropertyProvider = {
         
         const detailedListingsPromises = uniqueListings.map(fetchWeegeeDetails);
         
-        const detailedListings = await Promise.all(detailedListingsPromises);
+        const detailedListings: EnrichedWeegeeListing[] = (await Promise.all(detailedListingsPromises)).filter((item): item is EnrichedWeegeeListing => item !== null);
         
         // Map to standard Property format, then apply client-side bucket filters.
         let finalProperties = detailedListings
@@ -32,7 +33,7 @@ export const weegeeProvider: PropertyProvider = {
             });
         
         if (createdSince) {
-            finalProperties = finalProperties.filter(p => p.createdAt && p.createdAt >= createdSince);
+            finalProperties = finalProperties.filter(p => p.createdAt && new Date(p.createdAt) >= createdSince);
         }
 
         if (finalProperties.length > 0) {

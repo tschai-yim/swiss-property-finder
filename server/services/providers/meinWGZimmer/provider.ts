@@ -1,7 +1,7 @@
-import { Property, FilterBucket } from '../../../types';
+import { Property, FilterBucket } from '../../../../types';
 import { PropertyProvider, RequestManager, SearchContext } from '../providerTypes';
-import { calculateDistance } from '../../geoUtils';
-import { matchesGeneralFilters } from '../../../utils/filterUtils';
+import { calculateDistance } from '../../../../utils/geoUtils';
+import { matchesGeneralFilters } from '../../../../utils/filterUtils';
 import { fetchMeinWGZimmerApi, mapMeinWGZimmerToProperty } from './api';
 
 export const meinWGZimmerProvider: PropertyProvider = {
@@ -10,7 +10,7 @@ export const meinWGZimmerProvider: PropertyProvider = {
         const { filters, overallBoundingBox, createdSince } = context;
 
         const bucketsToFetch: FilterBucket[] = filters.buckets.length > 0 
-            ? filters.buckets.filter(b => b.type === 'sharedFlat')
+            ? filters.buckets.filter((b: FilterBucket) => b.type === 'sharedFlat')
             : [{ id: 'default', type: 'sharedFlat', price: { min: '', max: '' }, rooms: { min: '', max: '' }, size: { min: '', max: '' }, roommates: {min: '', max: ''} }];
 
         if (bucketsToFetch.length === 0) {

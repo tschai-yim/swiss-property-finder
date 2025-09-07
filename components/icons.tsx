@@ -1,21 +1,23 @@
 import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBicycle, faTrainSubway, faCar, faPersonWalking } from '@fortawesome/free-solid-svg-icons';
 
 interface IconProps {
     className?: string;
 }
 
 export const BikeIcon: React.FC<IconProps> = ({ className = "h-5 w-5" }) => (
-    <i className={`fa-solid fa-bicycle ${className}`}></i>
+    <FontAwesomeIcon icon={faBicycle} className={className} />
 );
 
 export const TrainIcon: React.FC<IconProps> = ({ className = "h-5 w-5" }) => (
-    <i className={`fa-solid fa-train-subway ${className}`}></i>
+    <FontAwesomeIcon icon={faTrainSubway} className={className} />
 );
 
 export const CarIcon: React.FC<IconProps> = ({ className = "h-5 w-5" }) => (
-     <i className={`fa-solid fa-car ${className}`}></i>
+    <FontAwesomeIcon icon={faCar} className={className} />
 );
 
 export const WalkIcon: React.FC<IconProps> = ({ className = "h-5 w-5" }) => (
-    <i className={`fa-solid fa-person-walking ${className}`}></i>
+    <FontAwesomeIcon icon={faPersonWalking} className={className} />
 );

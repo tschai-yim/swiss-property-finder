@@ -4,6 +4,8 @@ import { BikeIcon, TrainIcon, CarIcon, WalkIcon } from './icons';
 import { formatTravelTime, formatDistance } from '../utils/formatters';
 import { getBestTravelTime } from '../utils/propertyUtils';
 import { calculateDistance } from '../utils/geoUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faClock, faLocationArrow, faDoorOpen, faRulerCombined, faArrowUpRightFromSquare, faRoute } from '@fortawesome/free-solid-svg-icons';
 
 interface PropertyCardProps {
     property: Property;
@@ -93,7 +95,7 @@ const PrimaryMetricDisplay: React.FC<{
     if (!displayInfo) {
         return (
             <InfoIcon>
-                <i className="fa-solid fa-clock h-5 w-5 mr-1.5 text-gray-500"></i>
+                <FontAwesomeIcon icon={faClock} className="h-5 w-5 mr-1.5 text-gray-500" />
                 -
             </InfoIcon>
         );
@@ -115,7 +117,7 @@ const DistanceDisplay: React.FC<{
     const distance = calculateDistance(propertyCoords, destinationCoords);
     return (
         <InfoIcon>
-            <i className="fa-solid fa-location-arrow h-5 w-5 mr-1.5 text-gray-500"></i>
+            <FontAwesomeIcon icon={faLocationArrow} className="h-5 w-5 mr-1.5 text-gray-500" />
             <span className="font-bold">{formatDistance(distance)}</span>
         </InfoIcon>
     );
@@ -153,11 +155,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                 <div className="mt-auto pt-3">
                     <div className="flex justify-around items-center">
                         <InfoIcon>
-                            <i className="fa-solid fa-door-open h-5 w-5 mr-1.5 text-gray-500"></i>
+                            <FontAwesomeIcon icon={faDoorOpen} className="h-5 w-5 mr-1.5 text-gray-500" />
                             {property.rooms} rooms
                         </InfoIcon>
                         <InfoIcon>
-                            <i className="fa-solid fa-ruler-combined h-5 w-5 mr-1.5 text-gray-500"></i>
+                            <FontAwesomeIcon icon={faRulerCombined} className="h-5 w-5 mr-1.5 text-gray-500" />
                             {property.size && property.size > 0 ? `${property.size} m²` : '-'}
                         </InfoIcon>
                         <PrimaryMetricDisplay
@@ -185,7 +187,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                                 onClick={(e) => e.stopPropagation()}
                                 className="block w-full text-center bg-rose-500 text-white font-bold py-2 px-2 rounded-lg hover:bg-rose-600 transition-colors text-sm flex items-center justify-center"
                             >
-                                <i className="fa-solid fa-arrow-up-right-from-square mr-1.5"></i>
+                                <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="mr-1.5" />
                                 <span>{primaryProvider.name}</span>
                             </a>
                         )}
@@ -196,7 +198,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                             onClick={(e) => e.stopPropagation()}
                             className="block w-full text-center bg-rose-500 text-white font-bold py-2 px-2 rounded-lg hover:bg-rose-600 transition-colors text-sm flex items-center justify-center"
                         >
-                            <i className="fa-solid fa-route mr-1.5"></i>
+                            <FontAwesomeIcon icon={faRoute} className="mr-1.5" />
                             <span>Route</span>
                         </a>
                     </div>

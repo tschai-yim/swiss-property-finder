@@ -1,6 +1,6 @@
-import { Property, FilterBucket } from '../../../types';
+import { Property, FilterBucket } from '../../../../types';
 import { PropertyProvider, RequestManager, SearchContext } from '../providerTypes';
-import { matchesAdvancedFilters } from '../../../utils/filterUtils';
+import { matchesAdvancedFilters } from '../../../../utils/filterUtils';
 import { mapHomegateToProperty, formatCityForHomegate, fetchHomegateApi } from './api';
 
 export const homegateProvider: PropertyProvider = {
@@ -12,7 +12,7 @@ export const homegateProvider: PropertyProvider = {
         const geoTags = places.map(loc => formatCityForHomegate(loc.name));
 
         const bucketsToFetch: FilterBucket[] = filters.buckets.length > 0 
-            ? filters.buckets.filter(b => b.type === 'property')
+            ? filters.buckets.filter((b: FilterBucket) => b.type === 'property')
             : [{ id: 'default', type: 'property', price: { min: '', max: '' }, rooms: { min: '', max: '' }, size: { min: '', max: '' }, roommates: {min: '', max: ''} }];
 
         if (bucketsToFetch.length === 0) return;
@@ -67,7 +67,7 @@ export const homegateProvider: PropertyProvider = {
                     });
                 
                 if (createdSince) {
-                    const recentProperties = finalProperties.filter(p => p.createdAt && p.createdAt >= createdSince);
+                    const recentProperties = finalProperties.filter(p => p.createdAt && new Date(p.createdAt) >= createdSince);
                     // If the entire batch is older than the cutoff, we can stop paginating.
                     if (finalProperties.length > 0 && recentProperties.length === 0) {
                         hasMore = false;

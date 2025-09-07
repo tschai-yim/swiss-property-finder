@@ -1,6 +1,9 @@
-import { LocalStorageCache, SHORT_CACHE_TTL_MS, LONG_CACHE_TTL_MS } from './localStorageCache';
+import { SQLiteCache } from './sqliteCache';
 import { Cache } from './cacheInterface';
 
-const cacheService: Cache = new LocalStorageCache();
+export const SHORT_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+export const LONG_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 1 day
 
-export { cacheService, SHORT_CACHE_TTL_MS, LONG_CACHE_TTL_MS };
+const cacheService: Cache = new SQLiteCache();
+
+export { cacheService };

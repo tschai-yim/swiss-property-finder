@@ -1,5 +1,5 @@
 
-import { Property, FilterCriteria, DebugConfig, StoredExcludedProperty, SearchMetadata, TravelMode } from '../../types';
+import { Property, FilterCriteria, DebugConfig, StoredExcludedProperty, SearchMetadata, TravelMode } from '../../../types';
 import { streamProperties } from '../search/searchOrchestrator';
 import { enrichItemsWithTravelTimes } from '../api/cachedRoutingApi';
 
@@ -43,7 +43,7 @@ export const fetchNewPropertiesForEmail = async (
         if (event.type === 'progress') {
             onProgress(event.message);
         } else if (event.type === 'properties') {
-            event.properties.forEach(prop => propertyMap.set(prop.id, prop));
+            event.properties.forEach((prop: Property) => propertyMap.set(prop.id, prop));
         } else if (event.type === 'metadata') {
             report.metadata = { ...report.metadata, ...event.metadata };
         }
@@ -62,9 +62,9 @@ export const fetchNewPropertiesForEmail = async (
             ALL_MODES,
             !debugConfig.enabled || debugConfig.queryPublicTransport
         );
-        report.properties = fullyEnrichedProperties.sort((a,b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+        report.properties = collectedProperties.sort((a,b) => (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0));
     } else {
-        report.properties = collectedProperties.sort((a,b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+        report.properties = collectedProperties.sort((a,b) => (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0));
     }
     
     return report;

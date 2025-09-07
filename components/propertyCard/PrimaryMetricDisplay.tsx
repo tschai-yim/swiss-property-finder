@@ -5,6 +5,8 @@ import { TravelTimePopover } from './TravelTimePopover';
 import { BikeIcon, TrainIcon, CarIcon, WalkIcon } from '../icons';
 import { formatTravelTime } from '../../utils/formatters';
 import { getBestTravelTime } from '../../utils/propertyUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faClock } from '@fortawesome/free-solid-svg-icons';
 
 interface PrimaryMetricDisplayProps {
     property: Property;
@@ -37,7 +39,7 @@ export const PrimaryMetricDisplay: React.FC<PrimaryMetricDisplayProps> = ({ prop
     if (!displayInfo) {
         return (
             <InfoIcon>
-                <i className="fa-solid fa-clock h-5 w-5 mr-1.5 text-gray-500"></i>
+                <FontAwesomeIcon icon={faClock} className="h-5 w-5 mr-1.5 text-gray-500" />
                 -
             </InfoIcon>
         );

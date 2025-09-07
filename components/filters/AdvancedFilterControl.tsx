@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FilterCriteria } from '../../types';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 
 interface AdvancedFilterControlProps {
     filters: FilterCriteria;
@@ -27,7 +29,7 @@ export const AdvancedFilterControl: React.FC<AdvancedFilterControlProps> = ({ fi
                 className="flex items-center gap-2 py-1.5 px-3 rounded-full text-sm font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
             >
                 <span>More Filters</span>
-                <i className={`fa-solid fa-chevron-down text-xs transition-transform ${isOpen ? 'rotate-180' : ''}`}></i>
+                <FontAwesomeIcon icon={faChevronDown} className={`text-xs transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isOpen && (

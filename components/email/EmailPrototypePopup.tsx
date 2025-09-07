@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { FilterCriteria, DebugConfig, StoredExcludedProperty } from '../../types';
+import { FilterCriteria, DebugConfig, StoredExcludedProperty, SearchMetadata } from '../../types';
 import { trpc } from '../../utils/trpc';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEnvelopeOpenText, faDesktop, faMobileScreenButton } from '@fortawesome/free-solid-svg-icons';
 
 interface EmailPrototypePopupProps {
     onClose: () => void;
@@ -35,7 +37,7 @@ export const EmailPrototypePopup: React.FC<EmailPrototypePopupProps> = ({ onClos
 
             const html = await renderEmailTemplate.mutateAsync({
                 properties: report.properties,
-                metadata: report.metadata,
+                metadata: { ...report.metadata, filteredResults: report.metadata.filteredResults ?? 0 } as SearchMetadata,
                 daysCutoff,
             });
             
@@ -79,7 +81,7 @@ export const EmailPrototypePopup: React.FC<EmailPrototypePopupProps> = ({ onClos
             default:
                 return (
                     <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 p-4 bg-white/50 border-2 border-dashed border-gray-300 rounded-md">
-                        <i className="fa-solid fa-envelope-open-text text-5xl mb-4 text-gray-300"></i>
+                        <FontAwesomeIcon icon={faEnvelopeOpenText} className="text-5xl mb-4 text-gray-300" />
                         <h3 className="text-xl font-semibold text-gray-700">Ready to Generate Email</h3>
                         <p className="mt-1">Adjust the settings above and click "Generate" to preview the notification.</p>
                     </div>
@@ -100,11 +102,11 @@ export const EmailPrototypePopup: React.FC<EmailPrototypePopupProps> = ({ onClos
                             <button
                                 onClick={() => setViewMode('desktop')}
                                 className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${viewMode === 'desktop' ? 'bg-white text-rose-500 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-                            ><i className="fa-solid fa-desktop mr-1.5"></i>Desktop</button>
+                            ><FontAwesomeIcon icon={faDesktop} className="mr-1.5" />Desktop</button>
                             <button
                                 onClick={() => setViewMode('mobile')}
                                 className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${viewMode === 'mobile' ? 'bg-white text-rose-500 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-                            ><i className="fa-solid fa-mobile-screen-button mr-1.5"></i>Mobile</button>
+                            ><FontAwesomeIcon icon={faMobileScreenButton} className="mr-1.5" />Mobile</button>
                         </div>
                         <div className="flex items-center gap-2">
                             <label htmlFor="days-cutoff" className="text-sm font-medium text-gray-700">New in last</label>

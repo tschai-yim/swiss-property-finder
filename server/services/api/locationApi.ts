@@ -1,6 +1,6 @@
 
-import { GEOAPIFY_API_KEY } from '../../constants';
-import { BoundingBox, City } from '../../types';
+
+import { BoundingBox, City } from '../../../types';
 import { cacheService, LONG_CACHE_TTL_MS } from '../cache';
 import { fetchGeoapify } from './geoapifyService';
 
