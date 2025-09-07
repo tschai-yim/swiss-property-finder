@@ -1,5 +1,5 @@
 
-import { Property, FilterCriteria, SearchEvent, GeneralFilters, DebugConfig, StoredExcludedProperty, TravelMode } from '../../../types';
+import { Property, FilterCriteria, SearchEvent, GeneralFilters, DebugConfig, TravelMode } from '../../../types';
 import { isPointInPolygon } from '../../../utils/geoUtils';
 import { enrichItemsWithTravelTimes } from '../api/cachedRoutingApi';
 import { PropertySet } from './PropertySet';
@@ -19,7 +19,7 @@ import { matchesTravelFilters } from '../../../utils/filterUtils';
 export async function* streamProperties(
     filters: FilterCriteria,
     debugConfig: DebugConfig,
-    excludedProperties: StoredExcludedProperty[],
+    excludedProperties: Property[],
     createdSince?: Date,
 ): AsyncGenerator<SearchEvent> {
     

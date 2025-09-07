@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { FilterCriteria, DebugConfig, StoredExcludedProperty, SearchMetadata } from '../../types';
+import { FilterCriteria, DebugConfig, SearchMetadata, Property } from '../../types';
 import { trpc } from '../../utils/trpc';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelopeOpenText, faDesktop, faMobileScreenButton } from '@fortawesome/free-solid-svg-icons';
@@ -8,7 +8,7 @@ interface EmailPrototypePopupProps {
     onClose: () => void;
     filters: FilterCriteria;
     debugConfig: DebugConfig;
-    excludedProperties: StoredExcludedProperty[];
+    excludedProperties: Property[];
 }
 
 type DisplayState = 'initial' | 'loading' | 'preview' | 'error';

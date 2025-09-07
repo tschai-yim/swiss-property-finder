@@ -15,7 +15,6 @@ import {
   FilterBucket,
   DebugConfig,
   Property,
-  StoredExcludedProperty,
 } from "./types";
 import DebugPopup from "./components/DebugPopup";
 import EmailPrototypePopup from "./components/email/EmailPrototypePopup";
@@ -88,10 +87,7 @@ const App: React.FC = () => {
   const addExclusion = trpc.exclusion.addExclusion.useMutation();
   const removeExclusion = trpc.exclusion.removeExclusion.useMutation();
 
-  const excludedPropertiesRef = useRef(excludedProperties);
-  useEffect(() => {
-    excludedPropertiesRef.current = excludedProperties;
-  }, [excludedProperties]);
+  
 
   const {
     properties,
@@ -141,14 +137,6 @@ const App: React.FC = () => {
     []
   );
 
-  useEffect(() => {
-    searchProperties(
-      appliedFilters,
-      debugConfig,
-      excludedPropertiesRef.current || []
-    );
-  }, [searchProperties, appliedFilters, debugConfig]);
-
   const getCanonicalFiltersString = (f: FilterCriteria): string => {
     const fCopy = JSON.parse(JSON.stringify(f));
     if (fCopy.travelModes) {
@@ -169,11 +157,18 @@ const App: React.FC = () => {
     );
   }, [filters, appliedFilters]);
 
+  useEffect(() => {
+    // Initial search on mount
+    searchProperties(appliedFilters, debugConfig, excludedProperties || []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSearch = useCallback(() => {
     if (areFiltersDirty) {
       setAppliedFilters(filters);
+      searchProperties(filters, debugConfig, excludedProperties || []);
     }
-  }, [areFiltersDirty, filters]);
+  }, [areFiltersDirty, filters, appliedFilters, searchProperties, debugConfig, excludedProperties]);
 
   const {
     sortBy,
@@ -308,7 +303,7 @@ const App: React.FC = () => {
           onClose={() => setIsEmailPopupOpen(false)}
           filters={appliedFilters}
           debugConfig={debugConfig}
-          excludedProperties={excludedPropertiesRef.current || []}
+          excludedProperties={excludedProperties || []}
         />
       )}
       {isDebugPopupOpen && (

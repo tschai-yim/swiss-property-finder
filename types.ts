@@ -108,6 +108,3 @@ export type SearchEvent =
   | { type: 'properties'; properties: Property[] }
   | { type: 'metadata'; metadata: Partial<SearchMetadata> };
 
-export type StoredExcludedProperty = Omit<Property, 'travelTimeBike' | 'travelTimePublic' | 'travelTimeCar' | 'travelTimeWalk'> & {
-  excludedAt: string; // ISO date string
-};

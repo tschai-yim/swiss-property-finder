@@ -1,7 +1,7 @@
 
 
 import React from 'react';
-import { FilterCriteria, StoredExcludedProperty, Property } from '../../types';
+import { FilterCriteria, Property } from '../../types';
 import { BucketEditor } from './BucketEditor';
 import { summarizeBucket } from '../../utils/formatters';
 import { AdvancedFilterControl } from './AdvancedFilterControl';
@@ -18,7 +18,7 @@ interface FilterBucketListProps {
     onToggleBucketType: (id: string) => void;
     editingBucketId: string | null;
     onSetEditingBucketId: (id: string | null) => void;
-    excludedProperties: StoredExcludedProperty[];
+    excludedProperties: Property[];
     onRestoreProperty: (property: Property) => void;
     destinationCoords: { lat: number, lng: number } | null;
     onFocusPropertyOnMap: (coords: { lat: number, lng: number } | null) => void;

@@ -1,6 +1,6 @@
 
 
-import { Property, FilterBucket, GeneralFilters, FilterCriteria, StoredExcludedProperty } from '../types';
+import { Property, GeneralFilters, FilterCriteria } from '../types';
 
 /**
  * Checks if a property matches any of the defined filter buckets.
@@ -53,7 +53,7 @@ export const filterByBuckets = (property: Property, filters: GeneralFilters): bo
  * @param filters - The general filter criteria.
  * @returns True if the property passes the advanced filters.
  */
-export const matchesAdvancedFilters = (property: Property | StoredExcludedProperty, filters: GeneralFilters): boolean => {
+export const matchesAdvancedFilters = (property: Property, filters: GeneralFilters): boolean => {
     // Keyword Exclusion
     const textToSearch = `${property.title.toLowerCase()} ${property.description?.toLowerCase() || ''}`;
     const keywords = filters.exclusionKeywords.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
@@ -85,7 +85,7 @@ export const matchesAdvancedFilters = (property: Property | StoredExcludedProper
  * @param filters - The general filter criteria.
  * @returns True if the property passes all general filters.
  */
-export const matchesGeneralFilters = (property: Property | StoredExcludedProperty, filters: GeneralFilters): boolean => {
+export const matchesGeneralFilters = (property: Property, filters: GeneralFilters): boolean => {
     if (!matchesAdvancedFilters(property, filters)) {
         return false;
     }

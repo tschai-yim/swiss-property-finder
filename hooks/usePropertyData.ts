@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Property, FilterCriteria, SearchMetadata, DebugConfig, StoredExcludedProperty } from '../types';
+import { useState, useCallback } from 'react';
+import { Property, FilterCriteria, SearchMetadata, DebugConfig } from '../types';
 import { trpc } from '../utils/trpc';
 
 export const usePropertyData = () => {
@@ -11,7 +11,7 @@ export const usePropertyData = () => {
 
     const searchMutation = trpc.search.search.useMutation();
 
-    const searchProperties = useCallback(async (currentFilters: FilterCriteria, debugConfig: DebugConfig, excludedProperties: StoredExcludedProperty[]) => {
+    const searchProperties = useCallback(async (currentFilters: FilterCriteria, debugConfig: DebugConfig, excludedProperties: Property[]) => {
         setIsLoading(true);
         setProperties([]);
         setSearchMetadata(null);

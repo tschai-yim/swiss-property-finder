@@ -1,13 +1,13 @@
 
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Property, StoredExcludedProperty } from '../../types';
+import { Property } from '../../types';
 import PropertyCard from '../propertyCard/PropertyCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBan } from '@fortawesome/free-solid-svg-icons';
 
 interface ExcludedPropertiesProps {
-    excludedProperties: StoredExcludedProperty[];
+    excludedProperties: Property[];
     onRestoreProperty: (property: Property) => void;
     destinationCoords: { lat: number, lng: number } | null;
     onFocusPropertyOnMap: (coords: { lat: number, lng: number } | null) => void;
@@ -65,7 +65,7 @@ export const ExcludedProperties: React.FC<ExcludedPropertiesProps> = ({ excluded
                                     onHover={() => {}}
                                     
                                     onFocus={(p) => onFocusPropertyOnMap({ lat: p.lat, lng: p.lng })}
-                                    onRestore={() => onRestoreProperty(prop as Property)}
+                                    onRestore={() => onRestoreProperty(prop)}
                                     isExcludedView={true}
                                 />
                             ))

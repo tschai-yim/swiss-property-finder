@@ -1,7 +1,7 @@
 
 
 import React from 'react';
-import { FilterCriteria, IsochroneData, DebugConfig, StoredExcludedProperty, Property } from '../../types';
+import { FilterCriteria, IsochroneData, DebugConfig, Property } from '../../types';
 import { CommuteFilter } from './CommuteFilter';
 import { FilterBucketList } from './FilterBucketList';
 
@@ -20,7 +20,7 @@ interface FilterBarProps {
     isochrones?: IsochroneData[] | null;
     debugConfig: DebugConfig;
     onToggleDebugPopup: () => void;
-    excludedProperties: StoredExcludedProperty[];
+    excludedProperties: Property[];
     onRestoreProperty: (property: Property) => void;
     destinationCoords: { lat: number, lng: number } | null;
     onFocusPropertyOnMap: (coords: { lat: number, lng: number } | null) => void;

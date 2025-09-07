@@ -1,7 +1,7 @@
 import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { fetchNewPropertiesForEmail } from '../services/email/emailSearchService';
-import { FilterCriteria, DebugConfig, StoredExcludedProperty, Property, SearchMetadata } from '../../types';
+import { FilterCriteria, DebugConfig, Property, SearchMetadata } from '../../types';
 import { renderEmailTemplate } from '../utils/renderEmail';
 
 export const emailRouter = router({
@@ -9,7 +9,7 @@ export const emailRouter = router({
     .input(z.object({
       filters: z.custom<FilterCriteria>(),
       debugConfig: z.custom<DebugConfig>(),
-      excludedProperties: z.custom<StoredExcludedProperty[]>(),
+      excludedProperties: z.custom<Property[]>(),
       daysCutoff: z.number(),
     }))
     .mutation(async ({ input }) => {

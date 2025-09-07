@@ -3,7 +3,7 @@
 
 import React from 'react';
 // Fix: Import `Property` type.
-import { FilterCriteria, IsochroneData, DebugConfig, StoredExcludedProperty, Property } from '../types';
+import { FilterCriteria, IsochroneData, DebugConfig, Property } from '../types';
 import { CommuteFilter } from './filters/CommuteFilter';
 import { FilterBucketList } from './filters/FilterBucketList';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -26,7 +26,7 @@ interface FilterBarProps {
     debugConfig: DebugConfig;
     onToggleDebugPopup: () => void;
     onOpenEmailPopup: () => void;
-    excludedProperties: StoredExcludedProperty[];
+    excludedProperties: Property[];
     // Fix: Changed `onRemoveExclusion` to `onRestoreProperty` to match the prop passed from `App.tsx` and required by `FilterBucketList`.
     onRestoreProperty: (property: Property) => void;
     destinationCoords: { lat: number, lng: number } | null;

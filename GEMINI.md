@@ -1,3 +1,9 @@
+# Gemini Instructions
+
+## Searching
+
+When searching always specify the relevant subdirectories else you'll also search `node_modules` and `.next` which return thousands of results.
+
 ## History
 
 This project was originally a client-only React application that is being / was converted into a Next.js. So you might find residue of code that only makes sense on client-only applications.
@@ -8,7 +14,7 @@ When Chrome is available (preferred):
 
 - Start the Next.js server (`yarn dev`) in the background
   - It will only exit if you kill it
-  - It will automatically hot-reload changes
+  - It will automatically hot-reload changes without restarting
   - Pipe it's output to `server.log` so you can read it's output without killing it (for server errors; empty before starting again)
 - Open the page on Chrome to test it
   - Once open automatically hot-reloads on changes

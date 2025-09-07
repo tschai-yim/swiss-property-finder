@@ -1,5 +1,5 @@
 
-import { Property, FilterCriteria, DebugConfig, StoredExcludedProperty, SearchMetadata, TravelMode } from '../../../types';
+import { Property, FilterCriteria, DebugConfig, SearchMetadata, TravelMode } from '../../../types';
 import { streamProperties } from '../search/searchOrchestrator';
 import { enrichItemsWithTravelTimes } from '../api/cachedRoutingApi';
 
@@ -21,7 +21,7 @@ export interface EmailSearchReport {
 export const fetchNewPropertiesForEmail = async (
     filters: FilterCriteria,
     debugConfig: DebugConfig,
-    excludedProperties: StoredExcludedProperty[],
+    excludedProperties: Property[],
     createdSince: Date,
     onProgress: (message: string) => void
 ): Promise<EmailSearchReport> => {
