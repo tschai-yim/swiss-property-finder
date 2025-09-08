@@ -2,8 +2,7 @@
 
 
 import React from 'react';
-// Fix: Import `Property` type.
-import { FilterCriteria, IsochroneData, DebugConfig, Property } from '../types';
+import { FilterCriteria, IsochroneData, Property } from '../types';
 import { CommuteFilter } from './filters/CommuteFilter';
 import { FilterBucketList } from './filters/FilterBucketList';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -23,8 +22,6 @@ interface FilterBarProps {
     onHoverTravelMode: (mode: FilterCriteria['travelModes'][number] | null) => void;
     areFiltersDirty: boolean;
     isochrones?: IsochroneData[] | null;
-    debugConfig: DebugConfig;
-    onToggleDebugPopup: () => void;
     onOpenEmailPopup: () => void;
     excludedProperties: Property[];
     // Fix: Changed `onRemoveExclusion` to `onRestoreProperty` to match the prop passed from `App.tsx` and required by `FilterBucketList`.
@@ -84,10 +81,8 @@ const FilterBar: React.FC<FilterBarProps> = (props) => {
                     <div className="flex items-center space-x-3 self-start lg:self-center">
                         <div
                             className="flex items-center space-x-3 cursor-pointer"
-                            onClick={props.onToggleDebugPopup}
-                            title={`Click to configure debug settings. Debug mode is currently: ${props.debugConfig.enabled ? 'ON' : 'OFF'}`}
                         >
-                            <FontAwesomeIcon icon={faHouseChimney} className={`text-3xl transition-colors ${!props.debugConfig.enabled ? 'text-rose-500' : 'text-gray-400'}`} />
+                            <FontAwesomeIcon icon={faHouseChimney} className={`text-3xl text-rose-500`} />
                             <h1 className="text-2xl font-bold text-gray-800 tracking-tight hidden sm:block">
                                 Swiss Property Finder
                             </h1>

@@ -1,17 +1,17 @@
 import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { streamProperties } from '../services/search/searchOrchestrator';
-import { FilterCriteria, DebugConfig, Property } from '../../types';
+import { debugConfig } from '../../utils/env';
+import { FilterCriteria, Property } from '../../types';
 
 export const searchRouter = router({
   search: publicProcedure
     .input(z.object({
       currentFilters: z.custom<FilterCriteria>(),
-      debugConfig: z.custom<DebugConfig>(),
       excludedProperties: z.custom<Property[]>(),
     }))
     .mutation(async ({ input }) => {
-      const { currentFilters, debugConfig, excludedProperties } = input;
+      const { currentFilters, excludedProperties } = input;
       const properties = [];
       let metadata = null;
       for await (const event of streamProperties(currentFilters, debugConfig, excludedProperties)) {

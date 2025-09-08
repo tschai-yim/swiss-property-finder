@@ -10,13 +10,12 @@ import ResultsView from "./components/ResultsView";
 import { useFilters } from "./hooks/useFilters";
 import { usePropertyData } from "./hooks/usePropertyData";
 import { useInteractionState } from "./hooks/useInteractionState";
+import { debugConfig } from "./utils/env";
 import {
   FilterCriteria,
   FilterBucket,
-  DebugConfig,
   Property,
 } from "./types";
-import DebugPopup from "./components/DebugPopup";
 import EmailPrototypePopup from "./components/email/EmailPrototypePopup";
 import {
   matchesGeneralFilters,
@@ -30,15 +29,7 @@ const MapView = dynamic(() => import('./components/MapView'), {
     ssr: false,
 })
 
-const DEBUG_CONFIG_STORAGE_KEY = "swissPropertyFinderDebugConfig";
-const ALL_PROVIDERS = [
-  "Homegate",
-  "Comparis",
-  "Weegee",
-  "Tutti.ch",
-  "MeinWGZimmer",
-  "WGZimmer.ch",
-];
+
 
 const App: React.FC = () => {
   const {
@@ -54,31 +45,6 @@ const App: React.FC = () => {
 
   const [appliedFilters, setAppliedFilters] = useState<FilterCriteria>(filters);
 
-  const [debugConfig, setDebugConfig] = useState<DebugConfig>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem(DEBUG_CONFIG_STORAGE_KEY);
-        return stored
-          ? JSON.parse(stored)
-          : {
-              enabled: true,
-              requestLimit: 2,
-              enabledProviders: ["WGZimmer.ch", "Weegee"],
-              queryPublicTransport: false,
-            };
-      } catch {
-        // Fallback if localStorage is not accessible or parsing fails
-      }
-    }
-    return {
-      enabled: true,
-      requestLimit: 2,
-      enabledProviders: ["WGZimmer.ch", "Weegee"],
-      queryPublicTransport: false,
-    };
-  });
-
-  const [isDebugPopupOpen, setIsDebugPopupOpen] = useState(false);
   const [isEmailPopupOpen, setIsEmailPopupOpen] = useState(false);
 
   const { data: excludedProperties, refetch: refetchExcludedProperties } =
@@ -117,25 +83,7 @@ const App: React.FC = () => {
     cleanupCache.mutate();
   }, []);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem(
-          DEBUG_CONFIG_STORAGE_KEY,
-          JSON.stringify(debugConfig)
-        );
-      } catch (e) {
-        console.error("Failed to save debug config to localStorage", e);
-      }
-    }
-  }, [debugConfig]);
-
-  const handleUpdateDebugConfig = useCallback(
-    (newConfig: Partial<DebugConfig>) => {
-      setDebugConfig((prev) => ({ ...prev, ...newConfig }));
-    },
-    []
-  );
+  
 
   const getCanonicalFiltersString = (f: FilterCriteria): string => {
     const fCopy = JSON.parse(JSON.stringify(f));
@@ -159,16 +107,16 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // Initial search on mount
-    searchProperties(appliedFilters, debugConfig, excludedProperties || []);
+    searchProperties(appliedFilters, excludedProperties || []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = useCallback(() => {
     if (areFiltersDirty) {
       setAppliedFilters(filters);
-      searchProperties(filters, debugConfig, excludedProperties || []);
+      searchProperties(filters, excludedProperties || []);
     }
-  }, [areFiltersDirty, filters, appliedFilters, searchProperties, debugConfig, excludedProperties]);
+  }, [areFiltersDirty, filters, appliedFilters, searchProperties, excludedProperties]);
 
   const {
     sortBy,
@@ -268,7 +216,6 @@ const App: React.FC = () => {
     [
       searchMetadata,
       appliedFilters,
-      debugConfig,
       removeExclusion,
       refetchExcludedProperties,
       enrichProperty,
@@ -290,8 +237,6 @@ const App: React.FC = () => {
         onHoverTravelMode={handleHoverTravelMode}
         areFiltersDirty={areFiltersDirty}
         isochrones={searchMetadata?.isochrones}
-        debugConfig={debugConfig}
-        onToggleDebugPopup={() => setIsDebugPopupOpen((p) => !p)}
         onOpenEmailPopup={() => setIsEmailPopupOpen(true)}
         excludedProperties={excludedProperties || []}
         onRestoreProperty={handleRestoreProperty}
@@ -302,18 +247,10 @@ const App: React.FC = () => {
         <EmailPrototypePopup
           onClose={() => setIsEmailPopupOpen(false)}
           filters={appliedFilters}
-          debugConfig={debugConfig}
           excludedProperties={excludedProperties || []}
         />
       )}
-      {isDebugPopupOpen && (
-        <DebugPopup
-          config={debugConfig}
-          onConfigChange={handleUpdateDebugConfig}
-          onClose={() => setIsDebugPopupOpen(false)}
-          allProviders={ALL_PROVIDERS}
-        />
-      )}
+      
       <main className="flex-grow grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
         <div className="overflow-y-auto">
           <ResultsView

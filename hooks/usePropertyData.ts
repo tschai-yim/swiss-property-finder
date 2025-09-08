@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Property, FilterCriteria, SearchMetadata, DebugConfig } from '../types';
+import { Property, FilterCriteria, SearchMetadata } from '../types';
 import { trpc } from '../utils/trpc';
 
 export const usePropertyData = () => {
@@ -11,7 +11,7 @@ export const usePropertyData = () => {
 
     const searchMutation = trpc.search.search.useMutation();
 
-    const searchProperties = useCallback(async (currentFilters: FilterCriteria, debugConfig: DebugConfig, excludedProperties: Property[]) => {
+    const searchProperties = useCallback(async (currentFilters: FilterCriteria, excludedProperties: Property[]) => {
         setIsLoading(true);
         setProperties([]);
         setSearchMetadata(null);
@@ -19,7 +19,7 @@ export const usePropertyData = () => {
         setLoadingMessage('Initializing search...');
         
         try {
-            const result = await searchMutation.mutateAsync({ currentFilters, debugConfig, excludedProperties });
+            const result = await searchMutation.mutateAsync({ currentFilters, excludedProperties });
             setProperties(result.properties);
             setSearchMetadata({ ...result.metadata, filteredResults: result.metadata?.filteredResults ?? 0 } as SearchMetadata);
         } catch (error) {

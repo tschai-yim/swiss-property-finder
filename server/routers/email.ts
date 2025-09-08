@@ -1,19 +1,19 @@
 import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { fetchNewPropertiesForEmail } from '../services/email/emailSearchService';
-import { FilterCriteria, DebugConfig, Property, SearchMetadata } from '../../types';
+import { debugConfig } from '../../utils/env';
+import { FilterCriteria, Property, SearchMetadata } from '../../types';
 import { renderEmailTemplate } from '../utils/renderEmail';
 
 export const emailRouter = router({
   fetchNewProperties: publicProcedure
     .input(z.object({
       filters: z.custom<FilterCriteria>(),
-      debugConfig: z.custom<DebugConfig>(),
       excludedProperties: z.custom<Property[]>(),
       daysCutoff: z.number(),
     }))
     .mutation(async ({ input }) => {
-      const { filters, debugConfig, excludedProperties, daysCutoff } = input;
+      const { filters, excludedProperties, daysCutoff } = input;
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysCutoff);
       cutoffDate.setHours(0, 0, 0, 0);

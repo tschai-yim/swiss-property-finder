@@ -19,7 +19,7 @@ const ALL_PROVIDERS: PropertyProvider[] = [homegateProvider, comparisProvider, w
  */
 export const getActiveProviders = (debugConfig: DebugConfig): PropertyProvider[] => {
     return debugConfig.enabled
-        ? ALL_PROVIDERS.filter(p => debugConfig.enabledProviders.includes(p.name))
+        ? ALL_PROVIDERS.filter(p => debugConfig.enabledProviders.includes(p.name.toLowerCase()))
         : ALL_PROVIDERS;
 };
 

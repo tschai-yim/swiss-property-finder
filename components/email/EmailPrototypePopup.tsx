@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { FilterCriteria, DebugConfig, SearchMetadata, Property } from '../../types';
+import { FilterCriteria, SearchMetadata, Property } from '../../types';
 import { trpc } from '../../utils/trpc';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelopeOpenText, faDesktop, faMobileScreenButton } from '@fortawesome/free-solid-svg-icons';
@@ -7,13 +7,12 @@ import { faEnvelopeOpenText, faDesktop, faMobileScreenButton } from '@fortawesom
 interface EmailPrototypePopupProps {
     onClose: () => void;
     filters: FilterCriteria;
-    debugConfig: DebugConfig;
     excludedProperties: Property[];
 }
 
 type DisplayState = 'initial' | 'loading' | 'preview' | 'error';
 
-export const EmailPrototypePopup: React.FC<EmailPrototypePopupProps> = ({ onClose, filters, debugConfig, excludedProperties }) => {
+export const EmailPrototypePopup: React.FC<EmailPrototypePopupProps> = ({ onClose, filters, excludedProperties }) => {
     const [daysCutoff, setDaysCutoff] = useState(3);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [emailHtml, setEmailHtml] = useState<string>('');
@@ -30,7 +29,6 @@ export const EmailPrototypePopup: React.FC<EmailPrototypePopupProps> = ({ onClos
         try {
             const report = await fetchNewProperties.mutateAsync({
                 filters, 
-                debugConfig, 
                 excludedProperties, 
                 daysCutoff,
             });
@@ -52,7 +50,7 @@ export const EmailPrototypePopup: React.FC<EmailPrototypePopupProps> = ({ onClos
             setEmailHtml(errorHtml);
             setDisplayState('error');
         }
-    }, [daysCutoff, filters, debugConfig, excludedProperties, fetchNewProperties, renderEmailTemplate]);
+    }, [daysCutoff, filters, excludedProperties, fetchNewProperties, renderEmailTemplate]);
 
     const isLoading = useMemo(() => displayState === 'loading', [displayState]);
 
