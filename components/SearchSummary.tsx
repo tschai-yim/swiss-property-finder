@@ -69,7 +69,7 @@ const SearchSummary: React.FC<SearchSummaryProps> = ({ metadata, resultCount, so
                         value={sortBy} 
                         onChange={(e) => onSortChange(e.target.value as SortBy)}
                         className="p-2 border rounded-md shadow-sm text-sm focus:ring-rose-500 focus:border-rose-500 disabled:opacity-50 bg-white text-gray-900"
-                        disabled={isLoading || !hasResults}
+                        disabled={!hasResults}
                     >
                         <option value="latest">Latest Added</option>
                         <option value="priceAsc">Price (low to high)</option>
