@@ -1,3 +1,4 @@
+import { proxyEnabled } from "../../utils/env";
 
 const PROXY_URLS = [
     'https://corsproxy.io/?',
@@ -13,6 +14,9 @@ let currentProxyIndex = 0;
  * @returns The proxied URL.
  */
 export const proxy = (url: string) => {
+    if (!proxyEnabled) {
+        return url;
+    }
     const proxyUrl = PROXY_URLS[currentProxyIndex];
     
     // Move to the next proxy for the subsequent request (round-robin)

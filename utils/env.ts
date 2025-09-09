@@ -37,6 +37,8 @@ const getStringArray = (
   return value.split(",").map((s) => s.trim());
 };
 
+export const proxyEnabled = getBoolean(process.env.PROXY_ENABLED, false);
+
 export const emailConfig = {
   service: process.env.EMAIL_SERVICE || "generic",
   host: process.env.EMAIL_HOST,
