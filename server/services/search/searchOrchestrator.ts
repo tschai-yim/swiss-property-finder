@@ -118,8 +118,6 @@ export async function* streamProperties(
         );
       }
 
-      let finalBatch = isochroneFilteredBatch;
-
       // Step 3d: Enrich with travel times and filter by the user's max travel time constraints.
       const modesToEnrich = filters.travelModes;
       if (
@@ -142,7 +140,7 @@ export async function* streamProperties(
         ).filter((p) => matchesTravelFilters(p, filters));
 
         // Step 3e: Yield the final, processed batch to the UI.
-        if (finalBatch.length > 0) {
+        if (enrichedBatch.length > 0) {
           yield { type: "properties", properties: enrichedBatch };
         }
       }

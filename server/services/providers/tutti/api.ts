@@ -133,7 +133,7 @@ const _fetchTuttiApi = async function* (
 
     while (true) {
          if (requestManager.count >= requestManager.limit) {
-            const message = `[DEBUG MODE] Tutti.ch request limit (${requestManager.limit}) reached for ${city}.`;
+            const message = `[DEBUG MODE] Tutti.ch request limit (${requestManager.limit}) reached for ${cities}.`;
             console.warn(message);
             throw new RequestLimitError(message);
         }

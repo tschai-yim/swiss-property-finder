@@ -32,10 +32,10 @@ export const tuttiProvider: PropertyProvider = {
 
                     if (createdSince) {
                         const recentProperties = finalProperties.filter(p => p.createdAt && new Date(p.createdAt) >= createdSince);
-                        // If the entire batch is older than the cutoff, we can stop for this city/bucket.
+                        // If the entire batch is older than the cutoff, we can stop for this bucket.
                         if (finalProperties.length > 0 && recentProperties.length === 0) {
                             finalProperties = []; // Clear the batch
-                            break; // Stop fetching more pages for this city/bucket
+                            break; // Stop fetching more pages for this bucket
                         }
                         finalProperties = recentProperties;
                     }
