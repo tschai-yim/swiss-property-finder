@@ -7,7 +7,7 @@ import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
 import { memoizeGenerator, SHORT_CACHE_TTL_MS } from '../../cache';
 import { RequestLimitError } from '../../errors';
 
-const comparisRateLimiter = new RateLimiter(2); // 2 requests per second
+const comparisRateLimiter = new RateLimiter(1);
 
 const parseRooms = (essentialInfo: string[]): number => {
   const roomInfo = essentialInfo.find(info => info.includes('Zimmer') || info.includes('room'));
