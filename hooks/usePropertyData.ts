@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Property, FilterCriteria, SearchMetadata } from '../types';
+import { Property, FilterCriteria, SearchMetadata, SearchEvent } from '../types';
 import { trpc } from '../utils/trpc';
 import { PropertyWithoutCommuteTimes } from '@/server/services/providers/providerTypes';
 
@@ -10,29 +10,69 @@ export const usePropertyData = () => {
     const [searchMetadata, setSearchMetadata] = useState<SearchMetadata | null>(null);
     const [enrichingIds, setEnrichingIds] = useState<Set<string>>(new Set());
 
-    const searchMutation = trpc.search.search.useMutation();
+    const [subscriptionInput, setSubscriptionInput] = useState<{
+        currentFilters: FilterCriteria;
+        excludedProperties: PropertyWithoutCommuteTimes[];
+    } | null>(null);
+
     const enrichMutation = trpc.property.enrich.useMutation();
 
-    const searchProperties = useCallback(async (currentFilters: FilterCriteria, excludedProperties: PropertyWithoutCommuteTimes[]) => {
+    trpc.search.search.useSubscription(subscriptionInput!, {
+        enabled: !!subscriptionInput,
+        onData(event: SearchEvent) {
+            switch (event.type) {
+                case "progress":
+                    setLoadingMessage(event.message);
+                    break;
+                case "properties":
+                    setProperties((prev) => {
+                        const propMap = new Map(prev.map((p) => [p.id, p]));
+
+                        for (const newProp of event.properties) {
+                            const componentIds = newProp.id.split("+");
+                            if (componentIds.length > 1) {
+                                componentIds.forEach((id) => propMap.delete(id));
+                            }
+                            propMap.set(newProp.id, newProp);
+                        }
+                        return Array.from(propMap.values());
+                    });
+                    break;
+                case "metadata":
+                    setSearchMetadata((prev) => ({
+                        ...(prev || {
+                            filteredResults: 0,
+                            destinationCoords: null,
+                            searchLocations: [],
+                        }),
+                        ...event.metadata,
+                    }));
+                    break;
+            }
+        },
+        onError(err) {
+            console.error("An error occurred during property search stream:", err);
+            setLoadingMessage("An error occurred during the search.");
+            setIsLoading(false);
+            setSubscriptionInput(null);
+        },
+        onComplete() {
+            setIsLoading(false);
+            setLoadingMessage((prev) =>
+                prev.includes("complete") ? prev : "Search complete."
+            );
+            setSubscriptionInput(null);
+        },
+    });
+
+    const searchProperties = useCallback((currentFilters: FilterCriteria, excludedProperties: PropertyWithoutCommuteTimes[]) => {
         setIsLoading(true);
         setProperties([]);
         setSearchMetadata(null);
         setEnrichingIds(new Set());
         setLoadingMessage('Initializing search...');
-        
-        try {
-            const result = await searchMutation.mutateAsync({ currentFilters, excludedProperties });
-            setProperties(result.properties);
-            setSearchMetadata(result.metadata as SearchMetadata);
-        } catch (error) {
-            console.error("An error occurred during property search:", error);
-            setLoadingMessage("An error occurred during the search.");
-        } finally {
-            setIsLoading(false);
-            setLoadingMessage('Search complete.');
-        }
-        // MUST pass the mutateAsync not the searchMutation to avoid infinite render loops
-    }, [searchMutation.mutateAsync]);
+        setSubscriptionInput({ currentFilters, excludedProperties });
+    }, []);
     
     const enrichPropertyOnDemand = useCallback(async (propertyId: string) => {
         if (!searchMetadata?.destinationCoords) return;
