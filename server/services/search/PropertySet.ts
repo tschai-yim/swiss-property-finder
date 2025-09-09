@@ -1,4 +1,5 @@
 import { Property } from '../../../types';
+import { PropertyWithoutCommuteTimes } from '../providers/providerTypes';
 import { areDuplicates, mergeTwoProperties } from './propertyMerger';
 
 /**
@@ -8,7 +9,7 @@ import { areDuplicates, mergeTwoProperties } from './propertyMerger';
  */
 export class PropertySet {
     // The source of truth for all unique properties currently in the set.
-    private propertiesById: Map<string, Property> = new Map();
+    private propertiesById: Map<string, PropertyWithoutCommuteTimes> = new Map();
 
     // A spatial grid for efficient duplicate lookups, storing property IDs.
     private grid: Map<string, string[]> = new Map();
@@ -50,7 +51,7 @@ export class PropertySet {
     /**
      * Finds all properties in the set that are duplicates of the given property.
      */
-    private findDuplicatesOf(property: Property): Property[] {
+    private findDuplicatesOf(property: PropertyWithoutCommuteTimes): Property[] {
         if (!property.lat || !property.lng) {
             return [];
         }
@@ -64,7 +65,7 @@ export class PropertySet {
      * @param property The new property to add.
      * @returns An object containing the final property (which may be a merged version).
      */
-    public add(property: Property): { finalProperty: Property } {
+    public add(property: PropertyWithoutCommuteTimes): { finalProperty: PropertyWithoutCommuteTimes } {
         const duplicates = this.findDuplicatesOf(property);
         
         let finalProperty = property;
@@ -90,7 +91,7 @@ export class PropertySet {
      * This is used to efficiently populate a set for lookup purposes (e.g., an exclusion list).
      * @param property The property to add for lookup.
      */
-    public addForLookupOnly(property: Property): void {
+    public addForLookupOnly(property: PropertyWithoutCommuteTimes): void {
         this.propertiesById.set(property.id, property);
 
         if (property.lat && property.lng) {
@@ -108,7 +109,7 @@ export class PropertySet {
      * @param property The property to check.
      * @returns The existing duplicate property if found, otherwise null.
      */
-    public findDuplicate(property: Property): Property | null {
+    public findDuplicate(property: PropertyWithoutCommuteTimes): Property | null {
         return this.findDuplicatesOf(property)[0] || null;
     }
 
@@ -116,7 +117,7 @@ export class PropertySet {
      * Removes a property from all internal data structures.
      * @param property The property to remove.
      */
-    private remove(property: Property): void {
+    private remove(property: PropertyWithoutCommuteTimes): void {
         this.propertiesById.delete(property.id);
 
         if (property.lat && property.lng) {
@@ -137,7 +138,7 @@ export class PropertySet {
     /**
      * @returns An array of all unique properties currently in the set.
      */
-    public getAll(): Property[] {
+    public getAll(): PropertyWithoutCommuteTimes[] {
         return Array.from(this.propertiesById.values());
     }
 }

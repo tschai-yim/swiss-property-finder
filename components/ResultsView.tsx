@@ -2,6 +2,7 @@ import React from 'react';
 import { Property, SearchMetadata, FilterCriteria, SortBy } from '../types';
 import PropertyCard from './propertyCard/PropertyCard';
 import SearchSummary from './SearchSummary';
+import { PropertyWithoutCommuteTimes } from '@/server/services/providers/providerTypes';
 
 interface ResultsViewProps {
     properties: Property[];
@@ -16,8 +17,8 @@ interface ResultsViewProps {
     onSortChange: (sortBy: SortBy) => void;
     onSelectProperty: (id: string) => void;
     onHoverProperty: (id: string | null) => void;
-    
-    onExcludeProperty: (property: Property) => void;
+    onEnrichProperty: (id: string) => void;
+    onExcludeProperty: (property: PropertyWithoutCommuteTimes) => void;
 }
 
 const ResultsView: React.FC<ResultsViewProps> = ({
@@ -34,6 +35,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     onSelectProperty,
     onHoverProperty,
     onExcludeProperty,
+    onEnrichProperty
 }) => {
 
     return (
@@ -61,7 +63,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                                 destinationCoords={searchMetadata?.destinationCoords || null}
                                 onSelect={onSelectProperty}
                                 onHover={onHoverProperty}
-                                
+                                onEnrich={onEnrichProperty}
                                 onExclude={onExcludeProperty}
                             />
                         ))}

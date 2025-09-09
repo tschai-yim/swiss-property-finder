@@ -16,10 +16,7 @@ export interface Property {
   lng: number;
   imageUrl: string;
   imageUrls: string[];
-  travelTimeBike?: number | null;
-  travelTimePublic?: number | null;
-  travelTimeCar?: number | null;
-  travelTimeWalk?: number | null;
+  commuteTimes: Partial<Record<TravelMode, number | null>>;
   createdAt?: string;
 
   // New: Fields for advanced filtering

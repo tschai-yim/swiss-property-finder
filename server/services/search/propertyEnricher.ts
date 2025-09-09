@@ -1,17 +1,25 @@
-import { Property } from '../../../types';
-import { geocodeAddress } from '../api/geoApi';
-import { getRouteTime } from '../api/openRouteServiceApi';
-import { getPublicTransportTime } from '../api/openDataTransportApi';
+import { Property, TravelMode } from "../../../types";
+import { geocodeAddress } from "../api/geoApi";
+import { getRouteTime } from "../api/openRouteServiceApi";
+import { getPublicTransportTime } from "../api/openDataTransportApi";
+import { debugConfig } from "@/utils/env";
+import { PropertyWithoutCommuteTimes } from "../providers/providerTypes";
 
 // This function is now a utility for providers that don't get coordinates from their API.
-export async function enrichWithGeocoding(properties: Property[]): Promise<Property[]> {
-    const geocodedProperties = await Promise.all(properties.map(async p => {
-        if (p.lat !== 0 && p.lng !== 0) return p;
-        const coord = await geocodeAddress(p.address);
-        if (!coord) return null;
-        return { ...p, lat: coord.lat, lng: coord.lng };
-    }));
-    return geocodedProperties.filter((p): p is Property => p !== null);
+export async function enrichWithGeocoding<
+  TProperty extends { address: string; lat: number; lng: number },
+>(properties: TProperty[]): Promise<TProperty[]> {
+  const geocodedProperties = await Promise.all(
+    properties.map(async (p) => {
+      if (p.lat !== 0 && p.lng !== 0) return p;
+      const coord = await geocodeAddress(p.address);
+      if (!coord) return null;
+      return { ...p, lat: coord.lat, lng: coord.lng };
+    })
+  );
+  return geocodedProperties.filter(
+    (p): p is NonNullable<typeof p> => p !== null
+  );
 }
 
 /**
@@ -19,28 +27,50 @@ export async function enrichWithGeocoding(properties: Property[]): Promise<Prope
  * Used for lazy-loading travel times on demand (e.g., on hover).
  * @param property - The property to enrich.
  * @param destCoords - The destination coordinates.
- * @param queryPublicTransport - Whether to actually query the public transport API.
  * @returns A promise that resolves to the fully enriched property.
  */
 export const lazyEnrichProperty = async (
-    property: Property,
-    destCoords: { lat: number; lng: number },
-    queryPublicTransport: boolean
+  property: Property | PropertyWithoutCommuteTimes,
+  destCoords: { lat: number; lng: number }
 ): Promise<Property> => {
-    const from = { lat: property.lat, lng: property.lng };
+  const from = { lat: property.lat, lng: property.lng };
 
-    const [publicTime, bikeTime, carTime, walkTime] = await Promise.all([
-        property.travelTimePublic !== undefined ? Promise.resolve(property.travelTimePublic) : (queryPublicTransport ? getPublicTransportTime(from, destCoords) : Promise.resolve(null)),
-        property.travelTimeBike !== undefined ? Promise.resolve(property.travelTimeBike) : getRouteTime(from, destCoords, 'bike'),
-        property.travelTimeCar !== undefined ? Promise.resolve(property.travelTimeCar) : getRouteTime(from, destCoords, 'car'),
-        property.travelTimeWalk !== undefined ? Promise.resolve(property.travelTimeWalk) : getRouteTime(from, destCoords, 'walk'),
-    ]);
+  let modesToFetch: TravelMode[] = [
+    "public",
+    "bike",
+    "car",
+    "walk",
+  ] as TravelMode[];
+  if ("commuteTimes" in property)
+    modesToFetch = modesToFetch.filter(
+      (mode) => property.commuteTimes[mode] === undefined
+    );
 
-    return {
-        ...property,
-        travelTimePublic: publicTime,
-        travelTimeBike: bikeTime,
-        travelTimeCar: carTime,
-        travelTimeWalk: walkTime,
-    };
+  const fetchedTimes = await Promise.all(
+    modesToFetch.map((mode) => {
+      switch (mode) {
+        case "public":
+          return debugConfig.queryPublicTransport
+            ? getPublicTransportTime(from, destCoords)
+            : Promise.resolve(null);
+        case "bike":
+        case "car":
+        case "walk":
+          return getRouteTime(from, destCoords, mode);
+        default:
+          return Promise.resolve(null);
+      }
+    })
+  );
+
+  const newCommuteTimes =
+    "commuteTimes" in property ? { ...property.commuteTimes } : {};
+  modesToFetch.forEach((mode, index) => {
+    newCommuteTimes[mode] = fetchedTimes[index];
+  });
+
+  return {
+    ...property,
+    commuteTimes: newCommuteTimes,
+  };
 };

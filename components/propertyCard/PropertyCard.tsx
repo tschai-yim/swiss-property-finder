@@ -7,19 +7,20 @@ import { ActionButtons } from './ActionButtons';
 import { formatRelativeTime } from '../../utils/formatters';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarPlus, faChevronLeft, faChevronRight, faImage, faTrashCanArrowUp, faBan, faUsers, faDoorOpen, faRulerCombined } from '@fortawesome/free-solid-svg-icons';
+import { PropertyWithoutCommuteTimes } from '@/server/services/providers/providerTypes';
 
 interface PropertyCardProps {
-    property: Property;
+    property: Property | PropertyWithoutCommuteTimes;
     isSelected: boolean;
     travelModes: FilterCriteria['travelModes'];
     sortBy: SortBy;
     destinationCoords: { lat: number; lng: number } | null;
     onSelect: (id: string) => void;
     onHover: (id: string | null) => void;
-    
-    onExclude?: (property: Property) => void;
-    onRestore?: (property: Property) => void;
-    onFocus?: (property: Property) => void;
+    onEnrich: (id: string) => void;
+    onExclude?: (property: PropertyWithoutCommuteTimes) => void;
+    onRestore?: (property: PropertyWithoutCommuteTimes) => void;
+    onFocus?: (property: PropertyWithoutCommuteTimes) => void;
     isExcludedView?: boolean;
 }
 
@@ -31,7 +32,7 @@ const CreationDateDisplay: React.FC<{ createdAt: Date | undefined, sortBy: SortB
 );
 
 
-const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, travelModes, sortBy, destinationCoords, onSelect, onHover, onExclude, onRestore, onFocus, isExcludedView = false }) => {
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, travelModes, sortBy, destinationCoords, onSelect, onHover, onEnrich, onExclude, onRestore, onFocus, isExcludedView = false }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const imageUrls = property.imageUrls ?? [];
@@ -136,7 +137,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                             {property.size && property.size > 0 ? `${property.size} m²` : '-'}
                         </InfoIcon>
 
-                        {isExcludedView && destinationCoords ? (
+                        {!('commuteTimes' in property) ? (
                             <DistanceDisplay
                                 propertyCoords={{ lat: property.lat, lng: property.lng }}
                                 destinationCoords={destinationCoords}
@@ -147,7 +148,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, isSelected, trave
                                 property={property}
                                 travelModes={travelModes}
                                 sortBy={sortBy}
-                                
+                                onHover={() => onEnrich(property.id)}
                             />
                         )}
                          

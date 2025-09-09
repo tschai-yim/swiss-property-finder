@@ -1,5 +1,6 @@
 
 
+import { PropertyWithoutCommuteTimes } from '@/server/services/providers/providerTypes';
 import { Property, GeneralFilters, FilterCriteria } from '../types';
 
 /**
@@ -8,7 +9,7 @@ import { Property, GeneralFilters, FilterCriteria } from '../types';
  * @param filters - The general filter criteria containing the buckets.
  * @returns True if the property matches at least one bucket, or if no buckets are defined.
  */
-export const filterByBuckets = (property: Property, filters: GeneralFilters): boolean => {
+export const filterByBuckets = (property: PropertyWithoutCommuteTimes, filters: GeneralFilters): boolean => {
     if (filters.buckets.length === 0) return true; // No buckets means no filtering
 
     const checkBucket = (value: number | null | undefined, range: { min: string; max: string }) => {
@@ -53,7 +54,7 @@ export const filterByBuckets = (property: Property, filters: GeneralFilters): bo
  * @param filters - The general filter criteria.
  * @returns True if the property passes the advanced filters.
  */
-export const matchesAdvancedFilters = (property: Property, filters: GeneralFilters): boolean => {
+export const matchesAdvancedFilters = (property: PropertyWithoutCommuteTimes, filters: GeneralFilters): boolean => {
     // Keyword Exclusion
     const textToSearch = `${property.title.toLowerCase()} ${property.description?.toLowerCase() || ''}`;
     const keywords = filters.exclusionKeywords.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
@@ -85,7 +86,7 @@ export const matchesAdvancedFilters = (property: Property, filters: GeneralFilte
  * @param filters - The general filter criteria.
  * @returns True if the property passes all general filters.
  */
-export const matchesGeneralFilters = (property: Property, filters: GeneralFilters): boolean => {
+export const matchesGeneralFilters = (property: PropertyWithoutCommuteTimes, filters: GeneralFilters): boolean => {
     if (!matchesAdvancedFilters(property, filters)) {
         return false;
     }
@@ -112,13 +113,7 @@ export const matchesTravelFilters = (property: Property, filters: FilterCriteria
         const maxTime = parseInt(filters.maxTravelTimes[mode], 10);
         if (isNaN(maxTime) || maxTime <= 0) return false;
         
-        const timeMap = {
-            public: property.travelTimePublic,
-            bike: property.travelTimeBike,
-            car: property.travelTimeCar,
-            walk: property.travelTimeWalk
-        };
-        const propertyTime = timeMap[mode];
+        const propertyTime = property.commuteTimes[mode];
         return propertyTime != null && propertyTime <= maxTime;
     });
 };

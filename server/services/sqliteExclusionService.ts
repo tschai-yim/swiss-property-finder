@@ -3,15 +3,16 @@ import { open, Database } from "sqlite";
 import sqlite3 from "sqlite3";
 import path from "path";
 import fs from "fs/promises";
+import { PropertyWithoutCommuteTimes } from "./providers/providerTypes";
 
 const DB_PATH = path.join(process.cwd(), "data", "exclusions.db");
 
 // --- Simple pub/sub mechanism for state changes (can be kept or replaced with DB listeners) ---
 
-type Subscriber = (exclusions: Property[]) => void;
+type Subscriber = (exclusions: PropertyWithoutCommuteTimes[]) => void;
 const subscribers: Set<Subscriber> = new Set();
 
-const notify = (data: Property[]) => {
+const notify = (data: PropertyWithoutCommuteTimes[]) => {
   subscribers.forEach((callback) => callback(data));
 };
 // --- End pub/sub ---
@@ -42,7 +43,7 @@ export class SQLiteExclusionService {
     return db;
   }
 
-  private async loadExclusions(): Promise<Property[]> {
+  private async loadExclusions(): Promise<PropertyWithoutCommuteTimes[]> {
     const db = await this.db;
     const rows = await db.all(
       "SELECT * FROM exclusions ORDER BY excludedAt DESC"
@@ -53,22 +54,20 @@ export class SQLiteExclusionService {
     });
   }
 
-  public async addExclusion(property: Property): Promise<void> {
+  public async addExclusion(property: PropertyWithoutCommuteTimes): Promise<void> {
     const db = await this.db;
-    const {
-      travelTimeBike,
-      travelTimePublic,
-      travelTimeCar,
-      travelTimeWalk,
-      ...rest
-    } = property;
-
+    if ('commuteTimes' in property) {
+      // Strip out commuteTimes if present
+      const { commuteTimes, ...rest } = property;
+      property = rest;
+    }
+    
     await db.run(
       `INSERT OR REPLACE INTO exclusions (id, excludedAt, propertyData)
                 VALUES (?, ?, ?)`,
       property.id,
       new Date().toISOString(),
-      JSON.stringify(rest)
+      JSON.stringify(property)
     );
     const updatedExclusions = await this.loadExclusions();
     notify(updatedExclusions);
@@ -81,7 +80,7 @@ export class SQLiteExclusionService {
     notify(updatedExclusions);
   }
 
-  public async getExclusions(): Promise<Property[]> {
+  public async getExclusions(): Promise<PropertyWithoutCommuteTimes[]> {
     return this.loadExclusions();
   }
 

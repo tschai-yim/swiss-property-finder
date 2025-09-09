@@ -1,7 +1,7 @@
 
 import { Property, FilterBucket } from '../../../../types';
 import { TuttiApiResponse, TuttiListingNode } from './types';
-import { RequestManager } from '../providerTypes';
+import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { proxy } from '../../proxy';
 import { RateLimiter } from '../../rateLimiter';
 import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
@@ -68,7 +68,7 @@ const parsePrice = (priceStr: string): number => {
 };
 
 
-export const mapTuttiToProperty = (item: TuttiListingNode): Property | null => {
+export const mapTuttiToProperty = (item: TuttiListingNode): PropertyWithoutCommuteTimes | null => {
     if (!item.listingID || !item.coordinates) return null;
 
     const price = parsePrice(item.formattedPrice);

@@ -2,14 +2,14 @@
 import { Property } from '../../../../types';
 import { HomegateResult, HomegateApiResponse } from './types';
 import { proxy } from '../../proxy';
-import { RequestManager } from '../providerTypes';
+import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { RateLimiter } from '../../rateLimiter';
 import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
 
 const HOMEGATE_API_URL = 'https://api.homegate.ch/search/listings';
 const homegateRateLimiter = new RateLimiter(2); // 2 requests per second
 
-export const mapHomegateToProperty = (item: HomegateResult): Property | null => {
+export const mapHomegateToProperty = (item: HomegateResult): PropertyWithoutCommuteTimes | null => {
     const { listing } = item;
     if (!listing.id || !listing.address.geoCoordinates) return null;
 

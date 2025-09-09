@@ -8,6 +8,7 @@ import { AdvancedFilterControl } from './AdvancedFilterControl';
 import { ExcludedProperties } from './ExcludedProperties';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBed, faHouse } from '@fortawesome/free-solid-svg-icons';
+import { PropertyWithoutCommuteTimes } from '@/server/services/providers/providerTypes';
 
 interface FilterBucketListProps {
     filters: FilterCriteria;
@@ -18,8 +19,8 @@ interface FilterBucketListProps {
     onToggleBucketType: (id: string) => void;
     editingBucketId: string | null;
     onSetEditingBucketId: (id: string | null) => void;
-    excludedProperties: Property[];
-    onRestoreProperty: (property: Property) => void;
+    excludedProperties: PropertyWithoutCommuteTimes[];
+    onRestoreProperty: (property: PropertyWithoutCommuteTimes) => void;
     destinationCoords: { lat: number, lng: number } | null;
     onFocusPropertyOnMap: (coords: { lat: number, lng: number } | null) => void;
 }

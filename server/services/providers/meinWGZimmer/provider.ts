@@ -1,12 +1,12 @@
 import { Property, FilterBucket } from '../../../../types';
-import { PropertyProvider, RequestManager, SearchContext } from '../providerTypes';
+import { PropertyProvider, PropertyWithoutCommuteTimes, RequestManager, SearchContext } from '../providerTypes';
 import { calculateDistance } from '../../../../utils/geoUtils';
 import { matchesGeneralFilters } from '../../../../utils/filterUtils';
 import { fetchMeinWGZimmerApi, mapMeinWGZimmerToProperty } from './api';
 
 export const meinWGZimmerProvider: PropertyProvider = {
     name: 'MeinWGZimmer',
-    fetchProperties: async function* (context: SearchContext, requestManager: RequestManager): AsyncGenerator<Property[]> {
+    fetchProperties: async function* (context: SearchContext, requestManager: RequestManager): AsyncGenerator<PropertyWithoutCommuteTimes[]> {
         const { filters, overallBoundingBox, createdSince } = context;
 
         const bucketsToFetch: FilterBucket[] = filters.buckets.length > 0 

@@ -39,13 +39,13 @@ export const useInteractionState = (
                     const distB = calculateDistance({ lat: b.lat, lng: b.lng }, destinationCoords);
                     return distA - distB;
                 case 'travelTimePublic':
-                    return sortValue(a.travelTimePublic, b.travelTimePublic);
+                    return sortValue(a.commuteTimes.public, b.commuteTimes.public);
                 case 'travelTimeBike':
-                    return sortValue(a.travelTimeBike, b.travelTimeBike);
+                    return sortValue(a.commuteTimes.bike, b.commuteTimes.bike);
                 case 'travelTimeCar':
-                    return sortValue(a.travelTimeCar, b.travelTimeCar);
+                    return sortValue(a.commuteTimes.car, b.commuteTimes.car);
                 case 'travelTimeWalk':
-                    return sortValue(a.travelTimeWalk, b.travelTimeWalk);
+                    return sortValue(a.commuteTimes.walk, b.commuteTimes.walk);
                 case 'travelTime':
                 default:
                     const aBestTime = getBestTravelTime(a, travelModes)?.time ?? Infinity;

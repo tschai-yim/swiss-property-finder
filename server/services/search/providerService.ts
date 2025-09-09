@@ -1,5 +1,5 @@
 import { Property, DebugConfig } from '../../../types';
-import { PropertyProvider, RequestManager } from '../providers/providerTypes';
+import { PropertyProvider, PropertyWithoutCommuteTimes, RequestManager } from '../providers/providerTypes';
 
 // Import all providers
 import { homegateProvider } from '../providers/homegate/provider';
@@ -43,7 +43,7 @@ export const createRequestManagers = (providers: PropertyProvider[], debugConfig
  * @param generators An array of async generators, each yielding `Property[]`.
  * @returns A single async generator that yields `Property[]`.
  */
-export async function* mergeProviderStreams(generators: AsyncGenerator<Property[]>[]): AsyncGenerator<Property[]> {
+export async function* mergeProviderStreams(generators: AsyncGenerator<PropertyWithoutCommuteTimes[]>[]): AsyncGenerator<PropertyWithoutCommuteTimes[]> {
     const iterators = generators.map(g => g[Symbol.asyncIterator]());
     const promisesMap = new Map(
         iterators.map((it, index) => [index, it.next().then(result => ({ ...result, index }))])

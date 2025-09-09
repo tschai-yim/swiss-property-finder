@@ -1,7 +1,7 @@
 
 import { Property, FilterBucket } from '../../../../types';
 import { ComparisResultItem } from './types';
-import { RequestManager } from '../providerTypes';
+import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { proxy } from '../../proxy';
 import { RateLimiter } from '../../rateLimiter';
 import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
@@ -42,7 +42,7 @@ const parseSize = (essentialInfo: string[]): number | null => {
  * @param item The raw listing object from the Comparis API.
  * @returns A standardized `Property` object, or `null` if the item is invalid.
  */
-export const mapComparisToProperty = (item: ComparisResultItem): Property | null => {
+export const mapComparisToProperty = (item: ComparisResultItem): PropertyWithoutCommuteTimes | null => {
   if (!item.AdId || !item.PriceValue || !item.Address || item.Address.length === 0) return null;
 
   // Handle relative image URLs

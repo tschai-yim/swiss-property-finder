@@ -1,12 +1,12 @@
 import { Property } from '../../../../types';
-import { PropertyProvider, SearchContext } from '../providerTypes';
+import { PropertyProvider, PropertyWithoutCommuteTimes, SearchContext } from '../providerTypes';
 import { matchesGeneralFilters } from '../../../../utils/filterUtils';
 import { isPointInBoundingBox } from '../../../../utils/geoUtils';
 import { fetchAllWgZimmerListings, mapWgZimmerToProperty } from './api';
 
 export const wgZimmerProvider: PropertyProvider = {
     name: 'WGZimmer.ch',
-    fetchProperties: async function* (context: SearchContext, requestManager): AsyncGenerator<Property[]> {
+    fetchProperties: async function* (context: SearchContext, requestManager): AsyncGenerator<PropertyWithoutCommuteTimes[]> {
         const { filters, overallBoundingBox, createdSince } = context;
 
         // Optimization: If all filter buckets are for properties, skip this provider.
@@ -26,7 +26,7 @@ export const wgZimmerProvider: PropertyProvider = {
         // As the API returns all listings, we must filter them client-side.
         const propertiesInArea = allRooms
             .map(mapWgZimmerToProperty)
-            .filter((p): p is Property => {
+            .filter((p): p is PropertyWithoutCommuteTimes => {
                 if (!p) return false;
                 // 1. Filter by location using the isochrone bounding box.
                 return isPointInBoundingBox({ lat: p.lat, lng: p.lng }, overallBoundingBox);

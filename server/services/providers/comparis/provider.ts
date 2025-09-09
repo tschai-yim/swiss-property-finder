@@ -1,4 +1,4 @@
-import { PropertyProvider } from '../providerTypes';
+import { PropertyProvider, PropertyWithoutCommuteTimes } from '../providerTypes';
 import { fetchComparisApi, mapComparisToProperty } from './api';
 import { Property, FilterBucket } from '../../../../types';
 import { enrichWithGeocoding } from '../../search/propertyEnricher';
@@ -6,7 +6,7 @@ import { matchesAdvancedFilters } from '../../../../utils/filterUtils';
 
 export const comparisProvider: PropertyProvider = {
     name: 'Comparis',
-    fetchProperties: async function*(context, requestManager): AsyncGenerator<Property[]> {
+    fetchProperties: async function*(context, requestManager): AsyncGenerator<PropertyWithoutCommuteTimes[]> {
         const { filters, places, createdSince } = context;
         const allFetchedIds = new Set<number>();
 
@@ -24,7 +24,7 @@ export const comparisProvider: PropertyProvider = {
                     uniqueInBatch.forEach(item => allFetchedIds.add(item.AdId));
 
                     if (uniqueInBatch.length > 0) {
-                        const mappedProperties = uniqueInBatch.map(mapComparisToProperty).filter((p): p is Property => p !== null);
+                        const mappedProperties = uniqueInBatch.map(mapComparisToProperty).filter((p): p is PropertyWithoutCommuteTimes => p !== null);
                         
                         const geocodedProperties = await enrichWithGeocoding(mappedProperties);
 

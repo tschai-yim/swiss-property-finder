@@ -35,10 +35,10 @@ const HorizontalTravelTimes: React.FC<{ property: Property }> = ({
   property,
 }) => {
   const travelTimeMap = [
-    { mode: "public", time: property.travelTimePublic, icon: "🚈" },
-    { mode: "bike", time: property.travelTimeBike, icon: "🚲" },
-    { mode: "car", time: property.travelTimeCar, icon: "🚗" },
-    { mode: "walk", time: property.travelTimeWalk, icon: "🚶" },
+    { mode: "public", time: property.commuteTimes.public, icon: "🚈" },
+    { mode: "bike", time: property.commuteTimes.bike, icon: "🚲" },
+    { mode: "car", time: property.commuteTimes.car, icon: "🚗" },
+    { mode: "walk", time: property.commuteTimes.walk, icon: "🚶" },
   ];
 
   return (

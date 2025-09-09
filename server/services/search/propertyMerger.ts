@@ -1,12 +1,13 @@
 import { Property, PropertyProviderInfo } from '../../../types';
 import { calculateDistance } from '../../../utils/geoUtils';
+import { PropertyWithoutCommuteTimes } from '../providers/providerTypes';
 
 /**
  * A set of heuristics to determine if two property listings are likely duplicates.
  * This version is more lenient to account for minor changes in re-listed properties.
  * @returns True if the properties are considered duplicates.
  */
-export const areDuplicates = (p1: Property, p2: Property): boolean => {
+export const areDuplicates = (p1: PropertyWithoutCommuteTimes, p2: PropertyWithoutCommuteTimes): boolean => {
     // Both must have valid coordinates to be compared.
     if (!p1.lat || !p1.lng || !p2.lat || !p2.lng) {
         return false;
@@ -47,7 +48,7 @@ export const areDuplicates = (p1: Property, p2: Property): boolean => {
  * Merges two duplicate property listings into a single, more complete listing.
  * @returns A new, merged `Property` object.
  */
-export const mergeTwoProperties = (p1: Property, p2: Property): Property => {
+export const mergeTwoProperties = (p1: PropertyWithoutCommuteTimes, p2: PropertyWithoutCommuteTimes): PropertyWithoutCommuteTimes => {
     // Choose the primary property based on which has more images (heuristic for better data).
     const primary = p1.imageUrls.length >= p2.imageUrls.length ? p1 : p2;
     const secondary = primary === p1 ? p2 : p1;

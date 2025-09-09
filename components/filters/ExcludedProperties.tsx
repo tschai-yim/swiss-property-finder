@@ -5,10 +5,11 @@ import { Property } from '../../types';
 import PropertyCard from '../propertyCard/PropertyCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBan } from '@fortawesome/free-solid-svg-icons';
+import { PropertyWithoutCommuteTimes } from '@/server/services/providers/providerTypes';
 
 interface ExcludedPropertiesProps {
-    excludedProperties: Property[];
-    onRestoreProperty: (property: Property) => void;
+    excludedProperties: PropertyWithoutCommuteTimes[];
+    onRestoreProperty: (property: PropertyWithoutCommuteTimes) => void;
     destinationCoords: { lat: number, lng: number } | null;
     onFocusPropertyOnMap: (coords: { lat: number, lng: number } | null) => void;
 }
@@ -63,7 +64,7 @@ export const ExcludedProperties: React.FC<ExcludedPropertiesProps> = ({ excluded
                                     destinationCoords={destinationCoords}
                                     onSelect={() => {}}
                                     onHover={() => {}}
-                                    
+                                    onEnrich={() => {}}
                                     onFocus={(p) => onFocusPropertyOnMap({ lat: p.lat, lng: p.lng })}
                                     onRestore={() => onRestoreProperty(prop)}
                                     isExcludedView={true}

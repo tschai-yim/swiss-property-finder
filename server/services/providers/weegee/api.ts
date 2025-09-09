@@ -1,6 +1,6 @@
 import { Property } from '../../../../types';
 import { proxy } from '../../proxy';
-import { RequestManager } from '../providerTypes';
+import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { cacheService, LONG_CACHE_TTL_MS } from '../../cache';
 import { WeegeeListing, WeegeeResponse, WeegeeDetailResponse, EnrichedWeegeeListing } from './types';
 import { RateLimiter } from '../../rateLimiter';
@@ -49,7 +49,7 @@ const calculateCreatedAt = (created: { unit: string; value: number; }): Date | n
  * @param item The enriched listing object, combining stub and detail data.
  * @returns A standardized `Property` object, or `null` if essential data (like coordinates) is missing.
  */
-export const mapWeegeeToProperty = (item: EnrichedWeegeeListing): Property | null => {
+export const mapWeegeeToProperty = (item: EnrichedWeegeeListing): PropertyWithoutCommuteTimes | null => {
     if (!item.public_id || !item.address_lat || !item.address_lon) {
         return null;
     }

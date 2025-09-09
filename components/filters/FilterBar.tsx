@@ -4,6 +4,7 @@ import React from 'react';
 import { FilterCriteria, IsochroneData, DebugConfig, Property } from '../../types';
 import { CommuteFilter } from './CommuteFilter';
 import { FilterBucketList } from './FilterBucketList';
+import { PropertyWithoutCommuteTimes } from '@/server/services/providers/providerTypes';
 
 interface FilterBarProps {
     filters: FilterCriteria;
@@ -20,8 +21,8 @@ interface FilterBarProps {
     isochrones?: IsochroneData[] | null;
     debugConfig: DebugConfig;
     onToggleDebugPopup: () => void;
-    excludedProperties: Property[];
-    onRestoreProperty: (property: Property) => void;
+    excludedProperties: PropertyWithoutCommuteTimes[];
+    onRestoreProperty: (property: PropertyWithoutCommuteTimes) => void;
     destinationCoords: { lat: number, lng: number } | null;
     onFocusPropertyOnMap: (coords: { lat: number, lng: number } | null) => void;
 }

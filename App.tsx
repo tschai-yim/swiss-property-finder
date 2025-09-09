@@ -14,6 +14,7 @@ import {
 import { isPointInPolygon } from "./utils/geoUtils";
 import { trpc } from "./utils/trpc";
 import dynamic from "next/dynamic";
+import { PropertyWithoutCommuteTimes } from "./server/services/providers/providerTypes";
 
 const MapView = dynamic(() => import("./components/MapView"), {
   ssr: false,
@@ -47,7 +48,7 @@ const App: React.FC<AppProps> = ({ savedFilters: initialSavedFilters }) => {
   const [isEmailPopupOpen, setIsEmailPopupOpen] = useState(false);
 
   const { data: excludedProperties, refetch: refetchExcludedProperties } =
-    trpc.exclusion.getExclusions.useQuery(undefined);
+    trpc.exclusion.getExclusions.useQuery(undefined, { initialData: [] });
 
   const addExclusion = trpc.exclusion.addExclusion.useMutation();
   const removeExclusion = trpc.exclusion.removeExclusion.useMutation();
@@ -60,20 +61,14 @@ const App: React.FC<AppProps> = ({ savedFilters: initialSavedFilters }) => {
     searchProperties,
     enrichPropertyOnDemand,
     enrichingIds,
+    addProperty,
+    removeProperty,
   } = usePropertyData();
 
-  const [displayedProperties, setDisplayedProperties] = useState<Property[]>(
-    []
-  );
   const [tempMapPin, setTempMapPin] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
-
-  // Sync displayed properties with fetched properties
-  useEffect(() => {
-    setDisplayedProperties(properties);
-  }, [properties]);
 
   const cleanupCache = trpc.cache.cleanup.useMutation();
   useEffect(() => {
@@ -129,7 +124,7 @@ const App: React.FC<AppProps> = ({ savedFilters: initialSavedFilters }) => {
     handleHoverProperty,
     handleHoverTravelMode,
   } = useInteractionState(
-    displayedProperties,
+    properties,
     appliedFilters.travelModes,
     searchMetadata?.destinationCoords || null
   );
@@ -148,13 +143,11 @@ const App: React.FC<AppProps> = ({ savedFilters: initialSavedFilters }) => {
   );
 
   const handleExcludeProperty = useCallback(
-    (property: Property) => {
+    (property: PropertyWithoutCommuteTimes) => {
       addExclusion.mutate(property, {
         onSuccess: () => refetchExcludedProperties(),
       });
-      setDisplayedProperties((prev) =>
-        prev.filter((p) => p.id !== property.id)
-      );
+      removeProperty(property.id);
       if (selectedPropertyId === property.id) {
         handleSelectProperty(property.id);
       }
@@ -170,23 +163,21 @@ const App: React.FC<AppProps> = ({ savedFilters: initialSavedFilters }) => {
   const enrichProperty = trpc.property.enrich.useMutation();
 
   const handleRestoreProperty = useCallback(
-    async (propertyToRestore: Property) => {
+    async (propertyToRestore: PropertyWithoutCommuteTimes) => {
       removeExclusion.mutate(propertyToRestore.id, {
         onSuccess: () => refetchExcludedProperties(),
       });
 
-      const destinationCoords = searchMetadata?.destinationCoords;
+      const destinationCoords = searchMetadata?.destinationCoords!;
       const isochrones = searchMetadata?.isochrones ?? [];
-      const shouldQueryPublicTransport =
-        !debugConfig.enabled || debugConfig.queryPublicTransport;
 
       // 1. Check if it passes general filters (buckets, keywords, etc.)
       if (!matchesGeneralFilters(propertyToRestore, appliedFilters)) {
         return;
       }
 
-      // 2. If there's a destination, check if it's within the reachable area
-      if (destinationCoords && isochrones.length > 0) {
+      // 2. Check if it's within the reachable area
+      if (isochrones.length > 0) {
         const isInReachableArea = isochrones.some((iso) =>
           isPointInPolygon(
             { lat: propertyToRestore.lat, lng: propertyToRestore.lng },
@@ -198,19 +189,13 @@ const App: React.FC<AppProps> = ({ savedFilters: initialSavedFilters }) => {
         }
       }
 
-      // 3. If there are travel filters, enrich the property with travel times and check them
-      if (destinationCoords && appliedFilters.travelModes.length > 0) {
-        const enrichedProperty = await enrichProperty.mutateAsync({
-          property: propertyToRestore,
-          destinationCoords,
-          shouldQueryPublicTransport,
-        });
-        if (matchesTravelFilters(enrichedProperty, appliedFilters)) {
-          setDisplayedProperties((prev) => [...prev, enrichedProperty]);
-        }
-      } else {
-        // No travel filters, just add it back
-        setDisplayedProperties((prev) => [...prev, propertyToRestore]);
+      // 3. Enrich the property with travel times and check them
+      const enrichedProperty = await enrichProperty.mutateAsync({
+        property: propertyToRestore,
+        destinationCoords,
+      });
+      if (matchesTravelFilters(enrichedProperty, appliedFilters)) {
+        addProperty(enrichedProperty);
       }
     },
     [
@@ -270,6 +255,7 @@ const App: React.FC<AppProps> = ({ savedFilters: initialSavedFilters }) => {
             onSortChange={handleSortChange}
             enrichingIds={enrichingIds}
             onExcludeProperty={handleExcludeProperty}
+            onEnrichProperty={enrichPropertyOnDemand}
           />
         </div>
         <div className="hidden lg:block relative h-full">

@@ -12,10 +12,12 @@ export interface SearchContext {
     createdSince?: Date;
 }
 
+export type PropertyWithoutCommuteTimes = Omit<Property, 'commuteTimes'>;
+
 export interface PropertyProvider {
     name: string;
     fetchProperties: (
         context: SearchContext, 
         requestManager: RequestManager
-    ) => AsyncGenerator<Property[]>;
+    ) => AsyncGenerator<PropertyWithoutCommuteTimes[]>;
 }

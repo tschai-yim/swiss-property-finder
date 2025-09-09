@@ -1,11 +1,11 @@
 import { Property, FilterBucket } from '../../../../types';
-import { PropertyProvider, RequestManager, SearchContext } from '../providerTypes';
+import { PropertyProvider, PropertyWithoutCommuteTimes, RequestManager, SearchContext } from '../providerTypes';
 import { matchesAdvancedFilters } from '../../../../utils/filterUtils';
 import { mapHomegateToProperty, formatCityForHomegate, fetchHomegateApi } from './api';
 
 export const homegateProvider: PropertyProvider = {
     name: 'Homegate',
-    fetchProperties: async function* (context: SearchContext, requestManager: RequestManager): AsyncGenerator<Property[]> {
+    fetchProperties: async function* (context: SearchContext, requestManager: RequestManager): AsyncGenerator<PropertyWithoutCommuteTimes[]> {
         const { filters, places, createdSince } = context;
         if (places.length === 0) return;
         
@@ -60,7 +60,7 @@ export const homegateProvider: PropertyProvider = {
 
                 let finalProperties = result.results
                     .map(mapHomegateToProperty)
-                    .filter((p): p is Property => {
+                    .filter((p): p is PropertyWithoutCommuteTimes => {
                         if (!p || p.price <= 0) return false;
                         // Homegate API handles bucket filtering. We apply other general filters client-side.
                         return matchesAdvancedFilters(p, filters);

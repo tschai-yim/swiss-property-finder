@@ -1,12 +1,12 @@
 import { Property } from '../../../../types';
-import { PropertyProvider, SearchContext } from '../providerTypes';
+import { PropertyProvider, PropertyWithoutCommuteTimes, SearchContext } from '../providerTypes';
 import { matchesGeneralFilters } from '../../../../utils/filterUtils';
 import { mapWeegeeToProperty, fetchWeegeeStubs, fetchWeegeeDetails } from './api';
 import { EnrichedWeegeeListing } from './types';
 
 export const weegeeProvider: PropertyProvider = {
     name: 'Weegee',
-    fetchProperties: async function* (context, requestManager): AsyncGenerator<Property[]> {
+    fetchProperties: async function* (context, requestManager): AsyncGenerator<PropertyWithoutCommuteTimes[]> {
         const { filters, places, createdSince } = context;
 
         // Optimization: If all filter buckets are for properties, skip this provider.
@@ -26,7 +26,7 @@ export const weegeeProvider: PropertyProvider = {
         // Map to standard Property format, then apply client-side bucket filters.
         let finalProperties = detailedListings
             .map(mapWeegeeToProperty)
-            .filter((p): p is Property => {
+            .filter((p): p is PropertyWithoutCommuteTimes => {
                 if (!p) return false;
                 // Weegee has no server-side filtering, so apply all general filters client-side.
                 return matchesGeneralFilters(p, filters);

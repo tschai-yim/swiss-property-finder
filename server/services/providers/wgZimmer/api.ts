@@ -1,6 +1,6 @@
 
 import { Property } from '../../../../types';
-import { RequestManager } from '../providerTypes';
+import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { WgZimmerResponse, WgZimmerRoom } from './types';
 import { proxy } from '../../proxy';
 import { RateLimiter } from '../../rateLimiter';
@@ -10,7 +10,7 @@ const WGZIMMER_API_URL = 'https://www.wg-app.ch/wg-app-rooms/live-ads.json';
 const WGZIMMER_AUTH_TOKEN = 'd2ctYXBwLWFsbC1yb29tczpqa25kc2ZodW5rw6clJmRzamhrZHNoamcyMzQ=';
 const wgZimmerRateLimiter = new RateLimiter(2); // 2 requests per second
 
-export const mapWgZimmerToProperty = (item: WgZimmerRoom): Property | null => {
+export const mapWgZimmerToProperty = (item: WgZimmerRoom): PropertyWithoutCommuteTimes | null => {
     const lat = parseFloat(item.gpsLatitude);
     const lng = parseFloat(item.gpsLongitude);
     if (isNaN(lat) || isNaN(lng)) return null;

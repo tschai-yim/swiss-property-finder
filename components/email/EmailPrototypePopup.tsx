@@ -3,11 +3,12 @@ import { FilterCriteria, SearchMetadata, Property } from '../../types';
 import { trpc } from '../../utils/trpc';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelopeOpenText, faDesktop, faMobileScreenButton } from '@fortawesome/free-solid-svg-icons';
+import { PropertyWithoutCommuteTimes } from '@/server/services/providers/providerTypes';
 
 interface EmailPrototypePopupProps {
     onClose: () => void;
     filters: FilterCriteria;
-    excludedProperties: Property[];
+    excludedProperties: PropertyWithoutCommuteTimes[];
 }
 
 type DisplayState = 'initial' | 'loading' | 'preview' | 'error';
@@ -35,7 +36,7 @@ export const EmailPrototypePopup: React.FC<EmailPrototypePopupProps> = ({ onClos
 
             const html = await renderEmailTemplate.mutateAsync({
                 properties: report.properties,
-                metadata: { ...report.metadata, filteredResults: report.metadata.filteredResults ?? 0 } as SearchMetadata,
+                metadata: report.metadata,
                 daysCutoff,
             });
             

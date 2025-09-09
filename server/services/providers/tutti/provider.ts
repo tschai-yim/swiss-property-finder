@@ -1,11 +1,11 @@
 import { Property, FilterBucket } from '../../../../types';
-import { PropertyProvider, RequestManager, SearchContext } from '../providerTypes';
+import { PropertyProvider, PropertyWithoutCommuteTimes, RequestManager, SearchContext } from '../providerTypes';
 import { matchesAdvancedFilters } from '../../../../utils/filterUtils';
 import { fetchTuttiApi, mapTuttiToProperty } from './api';
 
 export const tuttiProvider: PropertyProvider = {
     name: 'Tutti.ch',
-    fetchProperties: async function*(context: SearchContext, requestManager: RequestManager): AsyncGenerator<Property[]> {
+    fetchProperties: async function*(context: SearchContext, requestManager: RequestManager): AsyncGenerator<PropertyWithoutCommuteTimes[]> {
         const { filters, places, createdSince } = context;
         const allFetchedIds = new Set<string>();
         
@@ -26,7 +26,7 @@ export const tuttiProvider: PropertyProvider = {
                     if (uniqueInBatch.length > 0) {
                         const mappedProperties = uniqueInBatch
                             .map(mapTuttiToProperty)
-                            .filter((p): p is Property => !!p);
+                            .filter((p): p is PropertyWithoutCommuteTimes => !!p);
 
                         // Tutti API handles bucket filtering. We apply other general filters client-side.
                         let finalProperties = mappedProperties.filter(p => matchesAdvancedFilters(p, filters));

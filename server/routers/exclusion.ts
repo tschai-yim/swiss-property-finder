@@ -1,7 +1,7 @@
 import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { exclusionService } from '../services/exclusionService';
-import { Property } from '../../types';
+import { PropertyWithoutCommuteTimes } from '../services/providers/providerTypes';
 
 export const exclusionRouter = router({
   getExclusions: publicProcedure
@@ -9,7 +9,7 @@ export const exclusionRouter = router({
       return await exclusionService.getExclusions();
     }),
   addExclusion: publicProcedure
-    .input(z.custom<Property>())
+    .input(z.custom<PropertyWithoutCommuteTimes>())
     .mutation(async ({ input }) => {
       await exclusionService.addExclusion(input);
     }),

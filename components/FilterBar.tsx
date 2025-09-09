@@ -4,6 +4,7 @@ import { CommuteFilter } from './filters/CommuteFilter';
 import { FilterBucketList } from './filters/FilterBucketList';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass, faCheck, faHouseChimney, faEnvelope, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { PropertyWithoutCommuteTimes } from '@/server/services/providers/providerTypes';
 
 // Fix: Add 'onToggleBucketType' and extend 'onUpdateBucket' to match the props required by FilterBucketList.
 interface FilterBarProps {
@@ -23,9 +24,9 @@ interface FilterBarProps {
     areFiltersDirty: boolean;
     isochrones?: IsochroneData[] | null;
     onOpenEmailPopup: () => void;
-    excludedProperties: Property[];
+    excludedProperties: PropertyWithoutCommuteTimes[];
     // Fix: Changed `onRemoveExclusion` to `onRestoreProperty` to match the prop passed from `App.tsx` and required by `FilterBucketList`.
-    onRestoreProperty: (property: Property) => void;
+    onRestoreProperty: (property: PropertyWithoutCommuteTimes) => void;
     destinationCoords: { lat: number, lng: number } | null;
     onFocusPropertyOnMap: (coords: { lat: number, lng: number } | null) => void;
 }

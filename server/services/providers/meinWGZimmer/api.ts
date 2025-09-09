@@ -2,7 +2,7 @@
 
 import { Property, FilterBucket } from '../../../../types';
 import { MeinWGZimmerResultItem, MeinWGZimmerResponse } from './types';
-import { RequestManager } from '../providerTypes';
+import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { RateLimiter } from '../../rateLimiter';
 import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
 
@@ -26,7 +26,7 @@ const meinWgZimmerRateLimiter = new RateLimiter(2); // 2 requests per second
  * @param item The raw listing object from the MeinWGZimmer API.
  * @returns A standardized `Property` object.
  */
-export const mapMeinWGZimmerToProperty = (item: MeinWGZimmerResultItem): Property => {
+export const mapMeinWGZimmerToProperty = (item: MeinWGZimmerResultItem): PropertyWithoutCommuteTimes => {
     const fullAddress = [item.Street, `${item.Zip} ${item.City}`].filter(Boolean).join(', ');
     
     let imageUrl: string | null = null;
