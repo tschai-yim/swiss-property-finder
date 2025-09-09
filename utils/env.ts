@@ -38,7 +38,7 @@ const getStringArray = (
 };
 
 export const emailConfig = {
-  service: process.env.EMAIL_SERVICE || 'generic',
+  service: process.env.EMAIL_SERVICE || "generic",
   host: process.env.EMAIL_HOST,
   port: getNumber(process.env.EMAIL_PORT, 587),
   secure: getBoolean(process.env.EMAIL_SECURE, false),
@@ -46,21 +46,38 @@ export const emailConfig = {
   pass: process.env.EMAIL_PASS,
   from: process.env.EMAIL_FROM,
   to: process.env.EMAIL_TO,
-  scheduleTimes: getStringArray(process.env.EMAIL_SCHEDULE_TIMES, ['12:00', '18:00']),
-  scheduleTimezone: process.env.EMAIL_SCHEDULE_TIMEZONE || 'Europe/Zurich',
-  debugImmediateCheck: getBoolean(process.env.DEBUG_EMAIL_IMMEDIATE_CHECK, false),
+  scheduleTimes: getStringArray(process.env.EMAIL_SCHEDULE_TIMES, [
+    "06:00",
+    "12:00",
+    "18:00",
+  ]),
+  scheduleTimezone: process.env.EMAIL_SCHEDULE_TIMEZONE || "Europe/Zurich",
+  debugImmediateCheck: getBoolean(
+    process.env.DEBUG_EMAIL_IMMEDIATE_CHECK,
+    false
+  ),
   debugLookbackHours: getNumber(process.env.DEBUG_EMAIL_LOOKBACK_HOURS, 0),
 };
 
-export const debugConfig: DebugConfig = {
-  enabled: getBoolean(process.env.DEBUG_MODE_ENABLED, true),
-  requestLimit: getNumber(process.env.DEBUG_MODE_REQUEST_LIMIT, 3),
-  enabledProviders: getStringArray(
-    process.env.DEBUG_MODE_ENABLED_PROVIDERS,
-    ALL_PROVIDERS
-  ).map((p) => p.toLowerCase()),
-  queryPublicTransport: getBoolean(
-    process.env.DEBUG_MODE_QUERY_PUBLIC_TRANSPORT,
-    false
-  ),
-};
+export const debugConfig: DebugConfig = getBoolean(
+  process.env.DEBUG_MODE_ENABLED,
+  true
+)
+  ? {
+      enabled: true,
+      requestLimit: getNumber(process.env.DEBUG_MODE_REQUEST_LIMIT, 3),
+      enabledProviders: getStringArray(
+        process.env.DEBUG_MODE_ENABLED_PROVIDERS,
+        ALL_PROVIDERS
+      ).map((p) => p.toLowerCase()),
+      queryPublicTransport: getBoolean(
+        process.env.DEBUG_MODE_QUERY_PUBLIC_TRANSPORT,
+        false
+      ),
+    }
+  : {
+      enabled: false,
+      requestLimit: Infinity,
+      enabledProviders: ALL_PROVIDERS.map((p) => p.toLowerCase()),
+      queryPublicTransport: false,
+    };
