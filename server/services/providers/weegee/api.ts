@@ -1,10 +1,11 @@
 import { Property } from '../../../../types';
 import { proxy } from '../../proxy';
 import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
-import { cacheService, LONG_CACHE_TTL_MS } from '../../cache';
+import { cacheService, LONG_CACHE_TTL_MS, memoize, SHORT_CACHE_TTL_MS } from '../../cache';
 import { WeegeeListing, WeegeeResponse, WeegeeDetailResponse, EnrichedWeegeeListing } from './types';
 import { RateLimiter } from '../../rateLimiter';
 import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
+import { RequestLimitError } from '../../errors';
 
 const WEEGEE_BUILD_ID = 'h-LRGq2CpW9N_IbD1D7ea';
 const weegeeRateLimiter = new RateLimiter(2); // 2 requests per second
@@ -101,7 +102,7 @@ export const mapWeegeeToProperty = (item: EnrichedWeegeeListing): PropertyWithou
     };
 };
 
-export const fetchWeegeeStubs = async (city: string, requestManager: RequestManager): Promise<WeegeeListing[]> => {
+const _fetchWeegeeStubs = async (city: string, requestManager: RequestManager): Promise<WeegeeListing[]> => {
     const cityListings: WeegeeListing[] = [];
     let page = 1;
     let hasMore = true;
@@ -114,7 +115,9 @@ export const fetchWeegeeStubs = async (city: string, requestManager: RequestMana
 
     while (hasMore) {
         if (requestManager.count >= requestManager.limit) {
-            break;
+            const message = `[DEBUG MODE] Weegee request limit (${requestManager.limit}) reached for ${city}.`;
+            console.warn(message);
+            throw new RequestLimitError(message, cityListings);
         }
 
         const apiUrl = `https://weegee.ch/api/en/search/city-${formattedCity}?page=${page}`;
@@ -127,30 +130,43 @@ export const fetchWeegeeStubs = async (city: string, requestManager: RequestMana
                     hasMore = false;
                     continue;
                  }
-                 throw new Error(`Status ${response.status}`);
+                 throw new Error(`Status ${response.status} (${response.statusText}): ${await response.text()}`);
             }
             
             const data = (await response.json()) as WeegeeResponse;
 
             if (data.listings?.length > 0) cityListings.push(...data.listings);
-            if (page >= data.num_pages || page >= 3) hasMore = false; else page++;
+            if (page >= data.num_pages) hasMore = false; else page++;
         } catch (error) {
             console.error(`Failed to fetch from Weegee for ${city} on page ${page}:`, error);
             hasMore = false;
+            throw new RequestLimitError(`Failed to fetch from Weegee: ${error}`, cityListings);
         }
     }
     return cityListings;
 };
 
-export const fetchWeegeeDetails = async (listing: WeegeeListing): Promise<EnrichedWeegeeListing | null> => {
-    const detailUrl = `https://weegee.ch/_next/data/${WEEGEE_BUILD_ID}/en/wg/-/${listing.public_id}.json`;
-    const cacheKey = `weegee-detail:${listing.public_id}`;
+export const fetchWeegeeStubs = memoize(
+    _fetchWeegeeStubs,
+    (city) => `weegee-stubs:${city}`,
+    SHORT_CACHE_TTL_MS
+);
 
+const _fetchWeegeeDetailById = async (id: string): Promise<WeegeeDetailResponse | null> => {
+    const detailUrl = `https://weegee.ch/_next/data/${WEEGEE_BUILD_ID}/en/wg/-/${id}.json`;
+    const response = await weegeeRateLimiter.schedule(() => fetch(proxy(detailUrl)));
+    return response.ok ? (await response.json()) as WeegeeDetailResponse : null;
+};
+
+const fetchWeegeeDetailById = memoize(
+    _fetchWeegeeDetailById,
+    (id) => `weegee-detail:${id}`,
+    LONG_CACHE_TTL_MS
+);
+
+export const fetchWeegeeDetails = async (listing: WeegeeListing): Promise<EnrichedWeegeeListing | null> => {
     try {
-        const data = await cacheService.getOrSet(cacheKey, async () => {
-            const response = await weegeeRateLimiter.schedule(() => fetch(proxy(detailUrl)));
-            return response.ok ? (await response.json()) as WeegeeDetailResponse : null;
-        }, LONG_CACHE_TTL_MS);
+        const data = await fetchWeegeeDetailById(listing.public_id);
         
         if (data) {
             const detailProps = data.pageProps.listing;

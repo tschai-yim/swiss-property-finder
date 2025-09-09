@@ -68,8 +68,7 @@ export const fetchHomegateApi = async (query: object, requestManager: RequestMan
         }));
 
         if (!response.ok) {
-            console.error(`Homegate API request failed with status ${response.status}`, await response.text());
-            return null;
+            throw new Error(`Homegate API request failed with status ${response.status} (${response.statusText}): ${await response.text()}`);
         }
         
         return await response.json();

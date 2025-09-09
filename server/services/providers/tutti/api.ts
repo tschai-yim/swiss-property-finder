@@ -1,10 +1,11 @@
-
 import { Property, FilterBucket } from '../../../../types';
 import { TuttiApiResponse, TuttiListingNode } from './types';
 import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { proxy } from '../../proxy';
 import { RateLimiter } from '../../rateLimiter';
 import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
+import { memoizeGenerator, SHORT_CACHE_TTL_MS } from '../../cache';
+import { RequestLimitError } from '../../errors';
 
 const TUTTI_API_URL = 'https://www.tutti.ch/api/v10/graphql';
 const TUTTI_API_HEADERS = {
@@ -13,7 +14,7 @@ const TUTTI_API_HEADERS = {
     'X-Tutti-Source': 'web r1.0-2025-08-22-10-28',
     'X-Tutti-Client-Identifier': 'web/1.0.0+env-live.git-786537f2',
 };
-const tuttiRateLimiter = new RateLimiter(2); // 2 requests per second
+const tuttiRateLimiter = new RateLimiter(0.1);
 
 const TUTTI_GRAPHQL_QUERY = `
 query SearchListingsByConstraints($constraints: ListingSearchConstraints, $first: Int!, $offset: Int!) {
@@ -116,14 +117,13 @@ export const mapTuttiToProperty = (item: TuttiListingNode): PropertyWithoutCommu
     };
 };
 
-export async function* fetchTuttiApi(
-    city: string,
+const _fetchTuttiApi = async function* (
+    cities: string[],
     bucket: FilterBucket,
     requestManager: RequestManager
 ): AsyncGenerator<TuttiListingNode[]> {
     let offset = 0;
-    const BATCH_SIZE = 50;
-    const formattedCity = formatCityForTutti(city);
+    const BATCH_SIZE = 200;
     
     const priceRange = { min: parseFloat(bucket.price.min) || null, max: parseFloat(bucket.price.max) || null };
     const roomsRange = { min: bucket.type === 'property' && bucket.rooms.min ? parseFloat(bucket.rooms.min) : null, max: bucket.type === 'property' && bucket.rooms.max ? parseFloat(bucket.rooms.max) : null };
@@ -133,8 +133,9 @@ export async function* fetchTuttiApi(
 
     while (true) {
          if (requestManager.count >= requestManager.limit) {
-            console.warn(`[DEBUG MODE] Tutti.ch request limit (${requestManager.limit}) reached for ${city}.`);
-            break;
+            const message = `[DEBUG MODE] Tutti.ch request limit (${requestManager.limit}) reached for ${city}.`;
+            console.warn(message);
+            throw new RequestLimitError(message);
         }
 
         const variables = {
@@ -145,7 +146,7 @@ export async function* fetchTuttiApi(
                     { key: "realEstateSize", min: sizeRange.min, max: sizeRange.max },
                     { key: "realEstateRooms", min: roomsRange.min, max: roomsRange.max },
                 ],
-                locations: [{ key: "location", localities: [formattedCity], radius: 0 }],
+                locations: [{ key: "location", localities: cities.map(formatCityForTutti), radius: 0 }],
                 prices: [{ key: "price", min: priceRange.min, max: priceRange.max, freeOnly: false }],
                 strings: [
                     { key: "listingType", value: listingType },
@@ -164,7 +165,7 @@ export async function* fetchTuttiApi(
             }));
 
             if (!response.ok) {
-                throw new Error(`Tutti.ch GraphQL request failed with status ${response.status}`);
+                throw new Error(`Tutti.ch GraphQL request failed with status ${response.status} (${response.statusText}): ${await response.text()}`);
             }
 
             const result = (await response.json()) as TuttiApiResponse;
@@ -176,11 +177,20 @@ export async function* fetchTuttiApi(
             yield nodes;
             
             offset += listings.edges.length;
-            if (offset >= listings.totalCount || offset >= 100) break;
+            if (offset >= listings.totalCount) break;
 
         } catch (error) {
-            console.error(`Failed to fetch properties from Tutti.ch for ${city} with bucket ${bucket.id}:`, error);
-            break;
+            console.error(`Failed to fetch properties from Tutti.ch for ${cities} with bucket ${bucket.id}:`, error);
+            throw new RequestLimitError(`Failed to fetch properties from Tutti.ch: ${error}`);
         }
     }
 }
+
+export const fetchTuttiApi = memoizeGenerator(
+    _fetchTuttiApi,
+    (cities, bucket) => {
+        const {id, ...withoutId} = bucket;
+        return `tutti-api:${cities.join(',')}:${JSON.stringify(withoutId)}`
+    },
+    SHORT_CACHE_TTL_MS
+);

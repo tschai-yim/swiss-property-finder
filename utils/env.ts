@@ -54,7 +54,7 @@ export const emailConfig = {
 
 export const debugConfig: DebugConfig = {
   enabled: getBoolean(process.env.DEBUG_MODE_ENABLED, true),
-  requestLimit: getNumber(process.env.DEBUG_MODE_REQUEST_LIMIT, 10),
+  requestLimit: getNumber(process.env.DEBUG_MODE_REQUEST_LIMIT, 3),
   enabledProviders: getStringArray(
     process.env.DEBUG_MODE_ENABLED_PROVIDERS,
     ALL_PROVIDERS

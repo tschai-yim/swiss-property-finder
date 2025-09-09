@@ -1,10 +1,10 @@
-
-
 import { Property, FilterBucket } from '../../../../types';
 import { MeinWGZimmerResultItem, MeinWGZimmerResponse } from './types';
 import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { RateLimiter } from '../../rateLimiter';
 import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
+import { memoize, SHORT_CACHE_TTL_MS } from '../../cache';
+import { RequestLimitError } from '../../errors';
 
 const MEINWGZIMMER_API_URL = 'https://api1.meinwgzimmer.ch/live/classes/Room';
 const MEINWGZIMMER_APP_ID = '94aa8f52080089940731d6952815ec7233b745cc';
@@ -75,7 +75,7 @@ export const mapMeinWGZimmerToProperty = (item: MeinWGZimmerResultItem): Propert
     };
 };
 
-export const fetchMeinWGZimmerApi = async (
+const _fetchMeinWGZimmerApi = async (
     bucket: FilterBucket,
     searchCoords: { lat: number; lng: number },
     radiusKm: number,
@@ -84,8 +84,9 @@ export const fetchMeinWGZimmerApi = async (
 ): Promise<MeinWGZimmerResultItem[]> => {
     
     if (requestManager.count >= requestManager.limit) {
-        console.warn(`[DEBUG MODE] MeinWGZimmer request limit (${requestManager.limit}) reached.`);
-        return [];
+        const message = `[DEBUG MODE] MeinWGZimmer request limit (${requestManager.limit}) reached.`;
+        console.warn(message);
+        throw new RequestLimitError(message);
     }
 
     const priceRange = { min: parseFloat(bucket.price.min) || null, max: parseFloat(bucket.price.max) || null };
@@ -136,13 +137,22 @@ export const fetchMeinWGZimmerApi = async (
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         }));
-        if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+        if (!response.ok) throw new Error(`API request failed with status ${response.status} (${response.statusText}): ${await response.text()}`);
 
         const data: MeinWGZimmerResponse = await response.json();
         return data.results || [];
 
     } catch (error) {
         console.error(`Failed to fetch from MeinWGZimmer:`, error);
-        return [];
+        throw new RequestLimitError(`Failed to fetch from MeinWGZimmer: ${error}`);
     }
 };
+
+export const fetchMeinWGZimmerApi = memoize(
+    _fetchMeinWGZimmerApi,
+    (bucket, searchCoords, radiusKm, _, createdSince) => {
+        const {id, ...bucketWithoutId} = bucket;
+        return `meinWGZimmer-api:${JSON.stringify({ bucketWithoutId, searchCoords, radiusKm, createdSince: createdSince?.toISOString() })}`
+    },
+    SHORT_CACHE_TTL_MS
+);

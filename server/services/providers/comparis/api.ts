@@ -1,10 +1,11 @@
-
 import { Property, FilterBucket } from '../../../../types';
 import { ComparisResultItem } from './types';
 import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { proxy } from '../../proxy';
 import { RateLimiter } from '../../rateLimiter';
 import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
+import { memoizeGenerator, SHORT_CACHE_TTL_MS } from '../../cache';
+import { RequestLimitError } from '../../errors';
 
 const comparisRateLimiter = new RateLimiter(2); // 2 requests per second
 
@@ -88,7 +89,7 @@ export const mapComparisToProperty = (item: ComparisResultItem): PropertyWithout
 /**
  * Fetches properties from the Comparis API for a single filter bucket and city, handling pagination.
  */
-export async function* fetchComparisApi(city: string, bucket: FilterBucket, requestManager: RequestManager): AsyncGenerator<ComparisResultItem[]> {
+async function* _fetchComparisApi(city: string, bucket: FilterBucket, requestManager: RequestManager): AsyncGenerator<ComparisResultItem[]> {
   let page = 0;
   let hasMore = true;
 
@@ -99,12 +100,12 @@ export async function* fetchComparisApi(city: string, bucket: FilterBucket, requ
   const minSize = bucket.type === 'property' && bucket.size.min ? parseFloat(bucket.size.min) : null;
   const maxSize = bucket.type === 'property' && bucket.size.max ? parseFloat(bucket.size.max) : null;
   
-  const rootPropertyTypes = bucket.type === 'property' ? [1, 4] : [3]; // 1=Wohnung, 4=Haus, 3=WG-Zimmer
+  const rootPropertyTypes = bucket.type === 'property' ? [1, 2, 4, 7] : [3];
 
-  while (hasMore && page < 3) { // Limit to 3 pages per bucket to avoid excessive requests
+  while (hasMore) {
     if (requestManager.count >= requestManager.limit) {
-      console.warn(`[DEBUG MODE] Comparis request limit (${requestManager.limit}) reached. Halting further requests for this search.`);
-      break;
+      const message = `[DEBUG MODE] Comparis request limit (${requestManager.limit}) reached. Halting further requests for this search.`;
+      throw new RequestLimitError(message);
     }
 
     const requestObject = {
@@ -123,7 +124,7 @@ export async function* fetchComparisApi(city: string, bucket: FilterBucket, requ
       const response = await comparisRateLimiter.schedule(() => fetch(proxy(apiUrl)));
       requestManager.count++;
 
-      if (!response.ok) throw new Error('Comparis API request failed');
+      if (!response.ok) throw new Error(`Comparis API request failed ${response.status} (${response.statusText}): ${await response.text()}`);
       const data = await response.json();
       if (data.ResultItems && data.ResultItems.length > 0) {
         yield data.ResultItems;
@@ -134,6 +135,16 @@ export async function* fetchComparisApi(city: string, bucket: FilterBucket, requ
     } catch (error) {
       console.error(`Failed to fetch properties for ${city} (bucket ${bucket.id}) on page ${page}:`, error);
       hasMore = false;
+      throw new RequestLimitError(`Failed to fetch properties from Comparis: ${error}`);
     }
   }
 }
+
+export const fetchComparisApi = memoizeGenerator(
+    _fetchComparisApi,
+    ( city, bucket ) => {
+        const { id, ...bucketWithoutId } = bucket;
+        return `comparis-api:${city}:${JSON.stringify(bucketWithoutId)}`;
+    },
+    SHORT_CACHE_TTL_MS
+);

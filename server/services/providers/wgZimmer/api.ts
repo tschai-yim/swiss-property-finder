@@ -1,10 +1,11 @@
-
 import { Property } from '../../../../types';
 import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { WgZimmerResponse, WgZimmerRoom } from './types';
 import { proxy } from '../../proxy';
 import { RateLimiter } from '../../rateLimiter';
 import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
+import { memoize, SHORT_CACHE_TTL_MS } from '../../cache';
+import { RequestLimitError } from '../../errors';
 
 const WGZIMMER_API_URL = 'https://www.wg-app.ch/wg-app-rooms/live-ads.json';
 const WGZIMMER_AUTH_TOKEN = 'd2ctYXBwLWFsbC1yb29tczpqa25kc2ZodW5rw6clJmRzamhrZHNoamcyMzQ=';
@@ -57,10 +58,11 @@ export const mapWgZimmerToProperty = (item: WgZimmerRoom): PropertyWithoutCommut
     };
 };
 
-export const fetchAllWgZimmerListings = async (requestManager: RequestManager): Promise<WgZimmerRoom[]> => {
+const _fetchAllWgZimmerListings = async (requestManager: RequestManager): Promise<WgZimmerRoom[]> => {
     if (requestManager.count >= requestManager.limit) {
-        console.warn(`[DEBUG MODE] WGZimmer.ch request limit (${requestManager.limit}) reached.`);
-        return [];
+        const message = `[DEBUG MODE] WGZimmer.ch request limit (${requestManager.limit}) reached.`;
+        console.warn(message);
+        throw new RequestLimitError(message);
     }
     
     try {
@@ -68,12 +70,18 @@ export const fetchAllWgZimmerListings = async (requestManager: RequestManager): 
         const response = await wgZimmerRateLimiter.schedule(() => fetch(proxy(WGZIMMER_API_URL), {
             headers: { 'Authorization': `Basic ${WGZIMMER_AUTH_TOKEN}` }
         }));
-        if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+        if (!response.ok) throw new Error(`API request failed with status ${response.status} (${response.statusText}): ${await response.text()}`);
 
         const data: WgZimmerResponse = await response.json();
         return data.rooms || [];
     } catch (error) {
         console.error(`Failed to fetch from WGZimmer.ch:`, error);
-        return [];
+        throw new RequestLimitError(`Failed to fetch from WGZimmer.ch: ${error}`);
     }
 };
+
+export const fetchAllWgZimmerListings = memoize(
+    _fetchAllWgZimmerListings,
+    () => 'wgzimmer-all-listings',
+    SHORT_CACHE_TTL_MS
+);
