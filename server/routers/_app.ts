@@ -6,6 +6,7 @@ import { propertyRouter } from './property';
 import { searchRouter } from './search';
 import { emailRouter } from './email';
 import { savedSearchRouter } from './savedSearch';
+import { startEmailScheduler } from '../services/email/emailScheduler';
 
 export const appRouter = router({
   geo: geoRouter,
@@ -16,5 +17,7 @@ export const appRouter = router({
   email: emailRouter,
   savedSearch: savedSearchRouter,
 });
+
+startEmailScheduler();
 
 export type AppRouter = typeof appRouter;
