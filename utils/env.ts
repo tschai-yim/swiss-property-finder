@@ -58,7 +58,7 @@ export const emailConfig = {
     process.env.DEBUG_EMAIL_IMMEDIATE_CHECK,
     false
   ),
-  debugLookbackHours: getNumber(process.env.DEBUG_EMAIL_LOOKBACK_HOURS, 0),
+  debugLookbackHours: getNumber(process.env.DEBUG_EMAIL_LOOKBACK_HOURS, 24),
 };
 
 export const debugConfig: DebugConfig = getBoolean(
