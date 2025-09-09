@@ -1,4 +1,4 @@
-import { NewPropertyAlertEmail } from "../../components/email/templates/NewPropertyAlertEmail";
+import { NewPropertyAlertEmail } from "../../emails/NewPropertyAlertEmail";
 import { Property, SearchMetadata } from "../../types";
 import React from "react";
 import { render } from "@react-email/components";

@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "email": "email dev"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.0.1",
@@ -15,6 +16,7 @@
     "@fortawesome/react-fontawesome": "^3.0.2",
     "@google/genai": "^1.15.0",
     "@react-email/components": "^0.5.1",
+    "@responsive-email/react-email": "^0.0.4",
     "@tanstack/react-query": "^5.86.0",
     "@trpc/client": "^11.5.0",
     "@trpc/next": "^11.5.0",
@@ -33,6 +35,7 @@
   },
   "devDependencies": {
     "@google/gemini-cli": "^0.3.4",
+    "@react-email/preview-server": "^4.2.8",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/leaflet": "^1.9.20",
     "@types/node": "^22.14.0",
@@ -41,6 +44,7 @@
     "autoprefixer": "^10.4.21",
     "mcp-chrome-bridge": "^1.0.29",
     "postcss": "^8.5.6",
+    "react-email": "^4.2.8",
     "tailwindcss": "^4.1.13",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.2"

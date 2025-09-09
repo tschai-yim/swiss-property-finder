@@ -21,8 +21,7 @@ export const formatMapPrice = (price: number, useFullNumberFormat: boolean): str
 };
 
 export const formatTravelTime = (minutes: number | null | undefined): string => {
-    if (minutes === undefined) return '...';
-    if (minutes === null) return '-';
+    if (minutes === null || minutes === undefined) return '-';
 
     if (minutes < 60) {
         return `${minutes} min`;
