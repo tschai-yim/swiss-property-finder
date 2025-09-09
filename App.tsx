@@ -1,21 +1,11 @@
-import React, {
-  useCallback,
-  useState,
-  useMemo,
-  useEffect,
-  useRef,
-} from "react";
+import React, { useCallback, useState, useMemo, useEffect } from "react";
 import FilterBar from "./components/FilterBar";
 import ResultsView from "./components/ResultsView";
 import { useFilters } from "./hooks/useFilters";
 import { usePropertyData } from "./hooks/usePropertyData";
 import { useInteractionState } from "./hooks/useInteractionState";
 import { debugConfig } from "./utils/env";
-import {
-  FilterCriteria,
-  FilterBucket,
-  Property,
-} from "./types";
+import { FilterCriteria, FilterBucket, Property } from "./types";
 import EmailPrototypePopup from "./components/email/EmailPrototypePopup";
 import {
   matchesGeneralFilters,
@@ -25,15 +15,18 @@ import { isPointInPolygon } from "./utils/geoUtils";
 import { trpc } from "./utils/trpc";
 import dynamic from "next/dynamic";
 
-const MapView = dynamic(() => import('./components/MapView'), {
-    ssr: false,
-})
+const MapView = dynamic(() => import("./components/MapView"), {
+  ssr: false,
+});
 
+interface AppProps {
+  savedFilters: FilterCriteria;
+}
 
-
-const App: React.FC = () => {
+const App: React.FC<AppProps> = ({ savedFilters: initialSavedFilters }) => {
   const {
-    filters,
+    filters: draftFilters,
+    setFilters: setDraftFilters,
     editingBucketId,
     handleFilterChange,
     handleAddBucket,
@@ -41,9 +34,15 @@ const App: React.FC = () => {
     handleUpdateBucket,
     handleSetEditingBucketId,
     handleToggleBucketType,
-  } = useFilters();
+    saveFiltersToServer,
+    isSaving,
+    isSaved,
+    isPristine,
+    resetSaveStatus,
+  } = useFilters(initialSavedFilters);
 
-  const [appliedFilters, setAppliedFilters] = useState<FilterCriteria>(filters);
+  const [appliedFilters, setAppliedFilters] =
+    useState<FilterCriteria>(initialSavedFilters);
 
   const [isEmailPopupOpen, setIsEmailPopupOpen] = useState(false);
 
@@ -52,8 +51,6 @@ const App: React.FC = () => {
 
   const addExclusion = trpc.exclusion.addExclusion.useMutation();
   const removeExclusion = trpc.exclusion.removeExclusion.useMutation();
-
-  
 
   const {
     properties,
@@ -83,8 +80,6 @@ const App: React.FC = () => {
     cleanupCache.mutate();
   }, []);
 
-  
-
   const getCanonicalFiltersString = (f: FilterCriteria): string => {
     const fCopy = JSON.parse(JSON.stringify(f));
     if (fCopy.travelModes) {
@@ -100,23 +95,28 @@ const App: React.FC = () => {
 
   const areFiltersDirty = useMemo(() => {
     return (
-      getCanonicalFiltersString(filters) !==
+      getCanonicalFiltersString(draftFilters) !==
       getCanonicalFiltersString(appliedFilters)
     );
-  }, [filters, appliedFilters]);
+  }, [draftFilters, appliedFilters]);
 
   useEffect(() => {
     // Initial search on mount
     searchProperties(appliedFilters, excludedProperties || []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [appliedFilters]);
 
   const handleSearch = useCallback(() => {
     if (areFiltersDirty) {
-      setAppliedFilters(filters);
-      searchProperties(filters, excludedProperties || []);
+      setAppliedFilters(draftFilters);
+      resetSaveStatus();
     }
-  }, [areFiltersDirty, filters, appliedFilters, searchProperties, excludedProperties]);
+  }, [areFiltersDirty, draftFilters, resetSaveStatus]);
+
+  const handleSave = () => {
+    saveFiltersToServer();
+    setAppliedFilters(draftFilters);
+  };
 
   const {
     sortBy,
@@ -225,13 +225,16 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col h-screen">
       <FilterBar
-        filters={filters}
+        filters={draftFilters}
         onFilterChange={handleFilterChange}
         onAddBucket={handleAddBucket}
         onRemoveBucket={handleRemoveBucket}
         onUpdateBucket={handleUpdateBucket}
         onToggleBucketType={handleToggleBucketType}
         onSearch={handleSearch}
+        onSave={handleSave}
+        isSaving={isSaving}
+        isSaved={(isSaved || isPristine) && !areFiltersDirty}
         editingBucketId={editingBucketId}
         onSetEditingBucketId={handleSetEditingBucketId}
         onHoverTravelMode={handleHoverTravelMode}
@@ -250,7 +253,7 @@ const App: React.FC = () => {
           excludedProperties={excludedProperties || []}
         />
       )}
-      
+
       <main className="flex-grow grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
         <div className="overflow-y-auto">
           <ResultsView

@@ -108,3 +108,34 @@ export type SearchEvent =
   | { type: 'properties'; properties: Property[] }
   | { type: 'metadata'; metadata: Partial<SearchMetadata> };
 
+import { z } from 'zod';
+
+export const FilterBucketSchema = z.object({
+  id: z.string(),
+  type: z.enum(['property', 'sharedFlat']),
+  price: z.object({ min: z.string(), max: z.string() }),
+  rooms: z.object({ min: z.string(), max: z.string() }),
+  size: z.object({ min: z.string(), max: z.string() }),
+  roommates: z.object({ min: z.string(), max: z.string() }),
+});
+
+export const GeneralFiltersSchema = z.object({
+  buckets: z.array(FilterBucketSchema),
+  exclusionKeywords: z.string(),
+  genderPreference: z.enum(['any', 'male', 'female']),
+  rentalDuration: z.enum(['permanent', 'temporary']),
+});
+
+export const TravelFiltersSchema = z.object({
+  destination: z.string(),
+  maxTravelTimes: z.object({
+    public: z.string(),
+    bike: z.string(),
+    car: z.string(),
+    walk: z.string(),
+  }),
+  travelModes: z.array(z.enum(['public', 'bike', 'car', 'walk'])),
+});
+
+export const FilterCriteriaSchema = GeneralFiltersSchema.merge(TravelFiltersSchema);
+

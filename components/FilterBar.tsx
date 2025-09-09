@@ -1,12 +1,9 @@
-
-
-
 import React from 'react';
 import { FilterCriteria, IsochroneData, Property } from '../types';
 import { CommuteFilter } from './filters/CommuteFilter';
 import { FilterBucketList } from './filters/FilterBucketList';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlass, faCheck, faHouseChimney, faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import { faMagnifyingGlass, faCheck, faHouseChimney, faEnvelope, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 
 // Fix: Add 'onToggleBucketType' and extend 'onUpdateBucket' to match the props required by FilterBucketList.
 interface FilterBarProps {
@@ -17,6 +14,9 @@ interface FilterBarProps {
     onUpdateBucket: (id: string, field: 'price' | 'rooms' | 'size' | 'roommates', subField: 'min' | 'max', value: string) => void;
     onToggleBucketType: (id: string) => void;
     onSearch: () => void;
+    onSave: () => void;
+    isSaving: boolean;
+    isSaved: boolean;
     editingBucketId: string | null;
     onSetEditingBucketId: (id: string | null) => void;
     onHoverTravelMode: (mode: FilterCriteria['travelModes'][number] | null) => void;
@@ -47,25 +47,46 @@ const FilterBar: React.FC<FilterBarProps> = (props) => {
         // Base classes for the content spans to handle the text transition.
         const contentSpanBase = "flex items-center justify-center transition-opacity duration-300 whitespace-nowrap";
 
+        if (isDirty) {
+            return (
+                <div className={`relative w-full lg:w-auto ${containerSizeClasses}`}>
+                    <button
+                        onClick={props.onSearch}
+                        disabled={!isDirty}
+                        title={"Run a new search with the current filters."}
+                        className={`absolute inset-0 ${buttonBaseClasses} ${activeClasses}`}
+                    >
+                        <span className={`${contentSpanBase}`}>
+                            <FontAwesomeIcon icon={faMagnifyingGlass} className="mr-2" />
+                            Search
+                        </span>
+                    </button>
+                </div>
+            );
+        }
+
         return (
             <div className={`relative w-full lg:w-auto ${containerSizeClasses}`}>
-                 <button
-                    onClick={props.onSearch}
-                    disabled={!isDirty}
-                    title={!isDirty ? "Your search criteria is already applied." : "Run a new search with the current filters."}
-                    // The button fills the container absolutely, allowing it to scale without affecting layout.
-                    className={`absolute inset-0 ${buttonBaseClasses} ${isDirty ? activeClasses : inactiveClasses}`}
+                <button
+                    onClick={props.onSave}
+                    disabled={props.isSaving || props.isSaved}
+                    title={props.isSaved ? "Filters are saved." : "Save the current filters to the server."}
+                    className={`absolute inset-0 ${buttonBaseClasses} ${props.isSaved ? inactiveClasses : activeClasses}`}
                 >
-                    {/* Active state content: "Search" */}
-                    <span className={`${contentSpanBase} ${isDirty ? 'opacity-100' : 'opacity-0'}`}>
-                        <FontAwesomeIcon icon={faMagnifyingGlass} className="mr-2" />
-                        Search
-                    </span>
-                    
-                    {/* Inactive state content: "Searched". Positioned absolutely to overlap. */}
-                     <span className={`${contentSpanBase} absolute ${!isDirty ? 'opacity-100' : 'opacity-0'}`}>
-                        <FontAwesomeIcon icon={faCheck} className="mr-2" />
-                        Searched
+                    <span className={`${contentSpanBase}`}>
+                        {props.isSaving ? (
+                            'Saving...'
+                        ) : props.isSaved ? (
+                            <>
+                                <FontAwesomeIcon icon={faCheck} className="mr-2" />
+                                Saved
+                            </>
+                        ) : (
+                            <>
+                                <FontAwesomeIcon icon={faFloppyDisk} className="mr-2" />
+                                Save
+                            </>
+                        )}
                     </span>
                 </button>
             </div>

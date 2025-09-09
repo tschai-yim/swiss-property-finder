@@ -23,6 +23,10 @@ export const CommuteFilter: React.FC<CommuteFilterProps> = ({ filters, onFilterC
     const { data: suggestions, refetch: fetchAddressSuggestions } = trpc.geo.fetchAddressSuggestions.useQuery(debouncedDestinationQuery, { enabled: false });
 
     useEffect(() => {
+        setDestinationQuery(filters.destination);
+    }, [filters.destination]);
+
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             // Close destination suggestions
             if (destinationInputRef.current && !destinationInputRef.current.contains(event.target as Node)) {
