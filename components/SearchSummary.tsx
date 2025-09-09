@@ -1,10 +1,9 @@
-
-
 import React from 'react';
 import { SearchMetadata, SortBy, FilterCriteria } from '../types';
 
 interface SearchSummaryProps {
     metadata: SearchMetadata | null;
+    resultCount: number;
     sortBy: SortBy;
     onSortChange: (sortBy: SortBy) => void;
     isLoading: boolean;
@@ -12,7 +11,7 @@ interface SearchSummaryProps {
     filters: FilterCriteria;
 }
 
-const SearchSummary: React.FC<SearchSummaryProps> = ({ metadata, sortBy, onSortChange, isLoading, loadingMessage, filters }) => {
+const SearchSummary: React.FC<SearchSummaryProps> = ({ metadata, resultCount, sortBy, onSortChange, isLoading, loadingMessage, filters }) => {
     
     const renderMetadata = () => {
         if (!metadata && isLoading) {
@@ -34,8 +33,6 @@ const SearchSummary: React.FC<SearchSummaryProps> = ({ metadata, sortBy, onSortC
             locationDisplay = "the selected area";
         }
         
-        const resultCount = metadata.filteredResults ?? (isLoading ? '...' : 0);
-
         return (
             <p className="text-sm text-gray-600">
                 Displaying <span className="font-semibold text-rose-500">{resultCount}</span> matching properties in {locationDisplay}.
@@ -43,7 +40,7 @@ const SearchSummary: React.FC<SearchSummaryProps> = ({ metadata, sortBy, onSortC
         );
     };
 
-    const hasResults = metadata?.filteredResults !== undefined && metadata.filteredResults > 0;
+    const hasResults = resultCount > 0;
     const hasDestination = !!metadata?.destinationCoords;
 
     const travelModeSortOptions: { value: SortBy, label: string, mode: FilterCriteria['travelModes'][number] }[] = [

@@ -21,7 +21,7 @@ export const usePropertyData = () => {
         try {
             const result = await searchMutation.mutateAsync({ currentFilters, excludedProperties });
             setProperties(result.properties);
-            setSearchMetadata({ ...result.metadata, filteredResults: result.metadata?.filteredResults ?? 0 } as SearchMetadata);
+            setSearchMetadata({ ...result.metadata } as SearchMetadata);
         } catch (error) {
             console.error("An error occurred during property search:", error);
             setLoadingMessage("An error occurred during the search.");

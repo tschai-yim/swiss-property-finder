@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Property, SearchMetadata, FilterCriteria, SortBy } from '../types';
 import PropertyCard from './propertyCard/PropertyCard';
@@ -42,6 +41,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
              <div className="space-y-4">
                 <SearchSummary 
                     metadata={searchMetadata}
+                    resultCount={properties.length}
                     sortBy={sortBy}
                     onSortChange={onSortChange}
                     isLoading={isLoading}

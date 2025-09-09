@@ -1,4 +1,3 @@
-
 import { Property, FilterCriteria, SearchEvent, GeneralFilters, DebugConfig, TravelMode } from '../../../types';
 import { isPointInPolygon } from '../../../utils/geoUtils';
 import { enrichItemsWithTravelTimes } from '../api/cachedRoutingApi';

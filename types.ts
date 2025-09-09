@@ -67,7 +67,6 @@ export interface IsochroneData {
 }
 
 export interface SearchMetadata {
-  filteredResults: number;
   destinationCoords: { lat: number; lng: number } | null;
   searchLocations: string[];
   isochrones?: IsochroneData[];
