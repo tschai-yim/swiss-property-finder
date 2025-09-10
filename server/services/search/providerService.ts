@@ -13,7 +13,7 @@ import { tuttiProvider } from "../providers/tutti/provider";
 import { meinWGZimmerProvider } from "../providers/meinWGZimmer/provider";
 import { wgZimmerProvider } from "../providers/wgZimmer/provider";
 
-const ALL_PROVIDERS: PropertyProvider[] = [
+export const ALL_PROVIDERS: PropertyProvider[] = [
   homegateProvider,
   comparisProvider,
   weegeeProvider,

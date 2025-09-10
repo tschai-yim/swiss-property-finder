@@ -17,22 +17,22 @@ This is a [Next.js](https://nextjs.org/) application using [tRPC](https://trpc.i
 
 ### Getting Started
 
-1.  Install dependencies: `npm install`
-2.  Set up your environment: Create a `.env.local` file and add your `GEMINI_API_KEY`.
-3.  Run the development server: `npm run dev`. This will start the server in the foreground. For background execution, you can pipe the output to a log file (e.g., `npm run dev > server.log 2>&1 &`).
+1.  Install dependencies: `yarn`
+2.  Set up your environment: Create a `.env` file.
+3.  Run the development server: `yarn dev`. This will start the server in the foreground. For background execution, you can pipe the output to a log file (e.g., `yarn dev > server.log 2>&1 &`).
 
 ### Building
 
--   To build the application for production, run `npm run build`. This is also a good way to check for compilation errors if you cannot run the full application.
--   To start the production server, run `npm run start`.
+-   To build the application for production, run `yarn build`. This is also a good way to check for compilation errors if you cannot run the full application.
+-   To start the production server, run `yarn start`.
 
 ### Linting
 
--   To check for code quality and style issues, run `npm run lint`.
+-   To check for code quality and style issues, run `yarn lint`.
 
 ### Email Previews
 
--   To preview emails, run `npm run email`. This will start a local server to preview email templates located in the `emails/` directory.
+-   To preview emails, run `yarn email`. This will start a local server to preview email templates located in the `emails/` directory.
 
 ## Searching the Codebase
 
@@ -43,7 +43,7 @@ When searching, be specific with your queries to avoid searching through `node_m
 -   **tRPC**: The project uses tRPC for API communication. When adding or modifying API endpoints, you will need to edit the corresponding router in `server/routers/` and the `_app.ts` router. The client-side tRPC setup is in `utils/trpc.ts`.
 -   **Styling**: [Tailwind CSS](httpss://tailwindcss.com/) is used for styling. Utility classes are preferred over custom CSS.
 -   **State Management**: The project uses a combination of React hooks and `@tanstack/react-query` for managing server state.
--   **Environment Variables**: Environment variables are managed in `.env.local` and accessed via `utils/env.ts`.
+-   **Environment Variables**: Environment variables are managed in `.env` and accessed via `utils/env.ts`.
 
 ## Integration Points
 

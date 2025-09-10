@@ -1,6 +1,7 @@
+import { ALL_PROVIDERS } from "@/server/services/search/providerService";
 import { DebugConfig } from "../types";
 
-const ALL_PROVIDERS = [
+const DEFAULT_PROVIDERS = [
   // "Homegate",
   // "Comparis",
   "Weegee",
@@ -70,7 +71,7 @@ export const debugConfig: DebugConfig = getBoolean(
       requestLimit: getNumber(process.env.DEBUG_MODE_REQUEST_LIMIT, 3),
       enabledProviders: getStringArray(
         process.env.DEBUG_MODE_ENABLED_PROVIDERS,
-        ALL_PROVIDERS
+        DEFAULT_PROVIDERS
       ).map((p) => p.toLowerCase()),
       queryPublicTransport: getBoolean(
         process.env.DEBUG_MODE_QUERY_PUBLIC_TRANSPORT,
@@ -80,6 +81,6 @@ export const debugConfig: DebugConfig = getBoolean(
   : {
       enabled: false,
       requestLimit: Infinity,
-      enabledProviders: ALL_PROVIDERS.map((p) => p.toLowerCase()),
+      enabledProviders: ALL_PROVIDERS.map((p) => p.name.toLowerCase()),
       queryPublicTransport: false,
     };

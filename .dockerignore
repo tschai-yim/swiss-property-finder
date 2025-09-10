@@ -1,0 +1,6 @@
+.direnv/
+.next/
+.vscode/
+node_modules/
+.env
+*.local

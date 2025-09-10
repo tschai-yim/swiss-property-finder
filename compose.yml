@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "${SITE_PORT:-3000}:3000"
+    environment:
+      - GEOAPIFY_API_KEY=${GEOAPIFY_API_KEY?:"You must set the GEOAPIFY_API_KEY environment variable"}
+      - PROXY_ENABLED
+      - EMAIL_SERVICE
+      - EMAIL_HOST
+      - EMAIL_PORT
+      - EMAIL_SECURE
+      - EMAIL_USER
+      - EMAIL_PASS
+      - EMAIL_FROM
+      - EMAIL_TO
+      - EMAIL_SCHEDULE_TIMES
+      - EMAIL_SCHEDULE_TIMEZONE
+      - DEBUG_EMAIL_IMMEDIATE_CHECK
+      - DEBUG_EMAIL_LOOKBACK_HOURS
+      - DEBUG_MODE_ENABLED=${DEBUG_MODE_ENABLED:-false}
+      - DEBUG_MODE_REQUEST_LIMIT
+      - DEBUG_MODE_ENABLED_PROVIDERS
+      - DEBUG_MODE_QUERY_PUBLIC_TRANSPORT
