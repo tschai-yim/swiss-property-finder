@@ -24,7 +24,7 @@ const getNumber = (value: string | undefined, defaultValue: number): number => {
   if (value === undefined) {
     return defaultValue;
   }
-  const parsed = parseInt(value, 2);
+  const parsed = parseInt(value);
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
