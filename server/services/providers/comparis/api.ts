@@ -92,6 +92,10 @@ export const mapComparisToProperty = (item: ResultAd): PropertyWithoutCommuteTim
         }
     }
 
+    let address = `${item.Zip} ${item.City}`;
+    if (item.Street) {
+        address = `${item.Street}, ` + address;
+    }
 
     return {
         id: `comparis-${item.AdId}`,
@@ -101,7 +105,7 @@ export const mapComparisToProperty = (item: ResultAd): PropertyWithoutCommuteTim
         price: item.PriceValue,
         rooms: item.Rooms,
         size: item.Area,
-        address: `${item.Street}, ${item.Zip} ${item.City}`,
+        address,
         lat: item.GeoCoordinates.Latitude,
         lng: item.GeoCoordinates.Longitude,
         imageUrl: item.ThumbnailImageUrl || (item.ImageUrls && item.ImageUrls[0]) || '',
@@ -122,7 +126,7 @@ async function* _fetchComparisApi(searchCriteria: SearchCriteria, requestManager
 
     while (hasMore) {
         if (requestManager.count >= requestManager.limit) {
-            throw new RequestLimitError('Request limit reached for Comparis provider.');
+            throw new RequestLimitError(`Request limit reached for Comparis provider (${requestManager.limit}).`);
         }
 
         const task = async () => {

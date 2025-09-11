@@ -200,7 +200,7 @@ export interface ResultAd {
      * Street name and number.
      * @example "Lägernstrasse 22"
      */
-    Street: string;
+    Street: string | null;
     /**
      * City name.
      * @example "Zürich"
