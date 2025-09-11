@@ -1,7 +1,19 @@
-
-
 import { PropertyWithoutCommuteTimes } from '@/server/services/providers/providerTypes';
-import { Property, GeneralFilters, FilterCriteria } from '../types';
+import { Property, GeneralFilters, FilterCriteria, FilterBucket } from '../types';
+
+const checkRange = (value: number | null | undefined, range: { min: string; max: string }) => {
+    const min = parseFloat(range.min);
+    const max = parseFloat(range.max);
+
+    // If the property has no value for a field (e.g. size), it only matches if the filter is also empty.
+    if (value === null || value === undefined) {
+        return isNaN(min) && isNaN(max);
+    }
+
+    const minOk = isNaN(min) || value >= min;
+    const maxOk = isNaN(max) || value <= max;
+    return minOk && maxOk;
+};
 
 /**
  * Checks if a property matches any of the defined filter buckets.
@@ -12,20 +24,6 @@ import { Property, GeneralFilters, FilterCriteria } from '../types';
 export const filterByBuckets = (property: PropertyWithoutCommuteTimes, filters: GeneralFilters): boolean => {
     if (filters.buckets.length === 0) return true; // No buckets means no filtering
 
-    const checkBucket = (value: number | null | undefined, range: { min: string; max: string }) => {
-        const min = parseFloat(range.min);
-        const max = parseFloat(range.max);
-
-        // If the property has no value for a field (e.g. size), it only matches if the filter is also empty.
-        if (value === null || value === undefined) {
-            return isNaN(min) && isNaN(max);
-        }
-
-        const minOk = isNaN(min) || value >= min;
-        const maxOk = isNaN(max) || value <= max;
-        return minOk && maxOk;
-    };
-
     // Return true if the property matches ANY of the buckets
     return filters.buckets.some(bucket => {
         // A property can only match a bucket of its own type.
@@ -33,15 +31,15 @@ export const filterByBuckets = (property: PropertyWithoutCommuteTimes, filters: 
             return false;
         }
 
-        const priceOk = checkBucket(property.price, bucket.price);
+        const priceOk = checkRange(property.price, bucket.price);
         if (!priceOk) return false;
 
         if (bucket.type === 'property') {
-            const roomsOk = checkBucket(property.rooms, bucket.rooms);
-            const sizeOk = checkBucket(property.size, bucket.size);
+            const roomsOk = checkRange(property.rooms, bucket.rooms);
+            const sizeOk = checkRange(property.size, bucket.size);
             return roomsOk && sizeOk;
         } else { // 'sharedFlat'
-            const roommatesOk = checkBucket(property.roommates, bucket.roommates);
+            const roommatesOk = checkRange(property.roommates, bucket.roommates);
             return roommatesOk;
         }
     });
@@ -116,4 +114,34 @@ export const matchesTravelFilters = (property: Property, filters: FilterCriteria
         const propertyTime = property.commuteTimes[mode];
         return propertyTime != null && propertyTime <= maxTime;
     });
+};
+
+/**
+ * A more specific filter function that checks if a property matches a single bucket,
+ * in addition to the advanced filters.
+ * @param property The property to check.
+ * @param filters The general filters (for advanced criteria).
+ * @param bucket The specific bucket to match against.
+ * @returns True if the property matches.
+ */
+export const filterProperty = (property: PropertyWithoutCommuteTimes, filters: GeneralFilters, bucket: FilterBucket): boolean => {
+    if (!matchesAdvancedFilters(property, filters)) {
+        return false;
+    }
+
+    if (property.type !== bucket.type) {
+        return false;
+    }
+
+    const priceOk = checkRange(property.price, bucket.price);
+    if (!priceOk) return false;
+
+    if (bucket.type === 'property') {
+        const roomsOk = checkRange(property.rooms, bucket.rooms);
+        const sizeOk = checkRange(property.size, bucket.size);
+        return roomsOk && sizeOk;
+    } else { // 'sharedFlat'
+        const roommatesOk = checkRange(property.roommates, bucket.roommates);
+        return roommatesOk;
+    }
 };

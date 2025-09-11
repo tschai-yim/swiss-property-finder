@@ -37,6 +37,7 @@ export const memoize = <T extends (...args: any[]) => Promise<any>>(
             // If the request was blocked, don't cache and return the partial results.
             // The error is logged by the function that throws it.
             if (error instanceof RequestLimitError) {
+                console.warn(error.message);
                 return error.partialResults as ReturnType<T>;
             }
             // Re-throw other unexpected errors
@@ -79,6 +80,7 @@ export const memoizeGenerator = <T extends (...args: any[]) => AsyncGenerator<an
             await cacheService.set(cacheKey, allItems, ttl);
         } catch (error) {
             if (error instanceof RequestLimitError) {
+                console.warn(error.message);
                 return; // Stop the generator
             }
             throw error; // Re-throw other unexpected errors

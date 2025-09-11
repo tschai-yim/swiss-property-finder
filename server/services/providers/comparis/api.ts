@@ -1,150 +1,181 @@
-import { Property, FilterBucket } from '../../../../types';
-import { ComparisResultItem } from './types';
+import {
+    AdDetails,
+    DetailsRequest,
+    DetailsResponse,
+    ResultAd,
+    ResultListRequest,
+    ResultListResponse,
+    SearchCriteria,
+} from './types';
 import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { proxy } from '../../proxy';
 import { RateLimiter } from '../../rateLimiter';
 import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
 import { memoizeGenerator, SHORT_CACHE_TTL_MS } from '../../cache';
 import { RequestLimitError } from '../../errors';
+import { randomUUID } from 'crypto';
 
 const comparisRateLimiter = new RateLimiter(1);
 
-const parseRooms = (essentialInfo: string[]): number => {
-  const roomInfo = essentialInfo.find(info => info.includes('Zimmer') || info.includes('room'));
-  if (roomInfo) {
-    const roomMatch = roomInfo.match(/(\d+(\.\d+)?)/);
-    if (roomMatch && roomMatch[1]) return parseFloat(roomMatch[1]);
-  }
-  // Fallback for listings like "WG-Zimmer" which might not explicitly state "1 Zimmer".
-  return 1;
-};
+const ANDROID_MODELS = ['M2012K11AG', 'SM-G991B', 'SM-A525F', 'Pixel 6', 'Pixel 7 Pro'];
 
-const parseSize = (essentialInfo: string[]): number | null => {
-  const sizeInfo = essentialInfo.find(info => info.includes('m²'));
-  if (sizeInfo) {
-    const sizeMatch = sizeInfo.match(/(\d+)/);
-    if (sizeMatch && sizeMatch[1]) return parseInt(sizeMatch[1], 10);
-  }
-  return null;
-};
+const getRandomModel = () => ANDROID_MODELS[Math.floor(Math.random() * ANDROID_MODELS.length)];
 
-/**
- * Maps a raw `ComparisResultItem` from their API to our standardized `Property` object.
- * 
- * Key mapping decisions:
- * - **ID**: Uses `AdId` for a unique identifier.
- * - **Price**: Prefers the clean numerical `PriceValue` over the formatted `Price` string.
- * - **Size**: Prefers the clean numerical `AreaValue`. If it's null, it attempts to parse the size from the `EssentialInformation` array as a fallback.
- * - **Rooms**: Parses the room count from the `EssentialInformation` array, as there's no dedicated field.
- * - **Image URL**: Handles both absolute and relative URLs returned by the API.
- * - **Creation Date**: Parses the `Date` string into a Date object.
- * - **Coordinates**: Initializes `lat` and `lng` to 0, as they must be added later via a separate geocoding step.
- * 
- * @param item The raw listing object from the Comparis API.
- * @returns A standardized `Property` object, or `null` if the item is invalid.
- */
-export const mapComparisToProperty = (item: ComparisResultItem): PropertyWithoutCommuteTimes | null => {
-  if (!item.AdId || !item.PriceValue || !item.Address || item.Address.length === 0) return null;
-
-  // Handle relative image URLs
-  let imageUrl: string | null = item.ImageUrl;
-  if (imageUrl && imageUrl.startsWith('/')) {
-    imageUrl = `https://www.comparis.ch${imageUrl}`;
-  }
-
-  let createdAt: Date | undefined = undefined;
-  if (item.Date) {
-    const date = new Date(item.Date);
-    if (!isNaN(date.getTime())) {
-      createdAt = date;
-    }
-  }
-
-  const detailUrl = `https://www.comparis.ch/immobilien/marktplatz/details/show/${item.AdId}`;
-  
-  const propertyType = item.PropertyTypeText.toLowerCase().includes('wg-zimmer') ? 'sharedFlat' : 'property';
-  const descriptionText = item.EssentialInformation.join(', ');
-  const fullText = [item.Title, descriptionText].filter(Boolean).join('\n');
-
-  return {
-    id: `comparis-${item.AdId}`,
-    providers: [{ name: 'Comparis', url: detailUrl }],
-    title: item.Title,
-    description: fullText,
-    price: item.PriceValue,
-    rooms: parseRooms(item.EssentialInformation),
-    size: item.AreaValue ?? parseSize(item.EssentialInformation),
-    address: item.Address.filter(Boolean).join(', '),
-    lat: 0, // Comparis requires a separate geocoding step
-    lng: 0,
-    imageUrl: imageUrl || '',
-    imageUrls: imageUrl ? [imageUrl] : [],
-    createdAt: createdAt?.toISOString(),
-    type: propertyType,
-    rentalDuration: isTemporaryBasedOnText(fullText) ? 'temporary' : 'permanent',
-    genderPreference: 'any', // Not specified
-  };
-};
-
-/**
- * Fetches properties from the Comparis API for a single filter bucket and city, handling pagination.
- */
-async function* _fetchComparisApi(city: string, bucket: FilterBucket, requestManager: RequestManager): AsyncGenerator<ComparisResultItem[]> {
-  let page = 0;
-  let hasMore = true;
-
-  const minPrice = bucket.price.min ? parseFloat(bucket.price.min) : null;
-  const maxPrice = bucket.price.max ? parseFloat(bucket.price.max) : null;
-  const minRooms = bucket.type === 'property' && bucket.rooms.min ? parseFloat(bucket.rooms.min) : null;
-  const maxRooms = bucket.type === 'property' && bucket.rooms.max ? parseFloat(bucket.rooms.max) : null;
-  const minSize = bucket.type === 'property' && bucket.size.min ? parseFloat(bucket.size.min) : null;
-  const maxSize = bucket.type === 'property' && bucket.size.max ? parseFloat(bucket.size.max) : null;
-  
-  const rootPropertyTypes = bucket.type === 'property' ? [1, 2, 4, 7] : [3];
-
-  while (hasMore) {
-    if (requestManager.count >= requestManager.limit) {
-      const message = `[DEBUG MODE] Comparis request limit (${requestManager.limit}) reached. Halting further requests for this search.`;
-      throw new RequestLimitError(message);
-    }
-
-    const requestObject = {
-      Header: { Language: "en" },
-      SearchParams: {
-        DealType: 10, RootPropertyTypes: rootPropertyTypes, PropertyTypes: [],
-        RoomsFrom: minRooms, RoomsTo: maxRooms,
-        LivingSpaceFrom: minSize, LivingSpaceTo: maxSize,
-        PriceFrom: minPrice, PriceTo: maxPrice,
-        LocationSearchString: city, Page: page,
-        Sort: 3 // Sort 3: created at descending
-      },
+const getComparisHeaders = () => {
+    return {
+        'deviceapplicationguid': randomUUID(),
+        'bundlename': 'ch.comparis.immoapp',
+        'bundleversion': '9.12.1',
+        'platform': 'Android',
+        'platformversion': '15',
+        'device': 'Android',
+        'model': getRandomModel(),
+        'accept': 'application/vnd.comparis.immobilien.v2+json',
+        'content-type': 'application/json',
+        'user-agent': 'Mozilla/5.0 (Linux; Android 15; M2012K11AG Build/BP1A.250505.005; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/139.0.7258.143 Mobile Safari/537.36 [comparis Property Android/9.12.1]',
+        'accept-encoding': 'gzip, deflate',
     };
-    const apiUrl = `https://www.comparis.ch/immobilien/api/v1/singlepage/resultitems?requestObject=${JSON.stringify(requestObject)}`;
-    try {
-      const response = await comparisRateLimiter.schedule(() => fetch(proxy(apiUrl)));
-      requestManager.count++;
+};
 
-      if (!response.ok) throw new Error(`Comparis API request failed ${response.status} (${response.statusText}): ${await response.text()}`);
-      const data = await response.json();
-      if (data.ResultItems && data.ResultItems.length > 0) {
-        yield data.ResultItems;
-        page++;
-      } else {
-        hasMore = false;
-      }
-    } catch (error) {
-      console.error(`Failed to fetch properties for ${city} (bucket ${bucket.id}) on page ${page}:`, error);
-      hasMore = false;
-      throw new RequestLimitError(`Failed to fetch properties from Comparis: ${error}`);
+/**
+ * Fetches detailed information for a single property ad.
+ * @param adId The ID of the ad to fetch.
+ * @returns The detailed ad information.
+ */
+export const fetchComparisDetails = async (adId: number): Promise<AdDetails> => {
+    const requestObject: DetailsRequest = {
+        AdId: adId,
+        Header: {
+            Language: 'en',
+            Locale: 'en-GB',
+        },
+    };
+
+    const url = `https://en.comparis.ch/immobilien/api/mobile/details?requestObject=${encodeURIComponent(JSON.stringify(requestObject))}`;
+
+    const response = await fetch(proxy(url), {
+        headers: getComparisHeaders(),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Comparis details API request failed with status ${response.status}`);
     }
-  }
+
+    const data: DetailsResponse = await response.json();
+
+    if (data.Header?.StatusCode ?? 0 !== 0) {
+        throw new Error(`Comparis details API returned status code ${data.Header?.StatusCode}: ${data.Header?.DebugMessage}`);
+    }
+
+    return data.Ad;
+};
+
+
+/**
+ * Maps a raw `ResultAd` from the new API to our standardized `Property` object.
+ */
+export const mapComparisToProperty = (item: ResultAd): PropertyWithoutCommuteTimes | null => {
+    if (!item.AdId || !item.PriceValue || !item.GeoCoordinates) return null;
+
+    const detailUrl = `https://www.comparis.ch/immobilien/marktplatz/details/show/${item.AdId}`;
+
+    const propertyType = item.RootPropertyTypeID === 3 ? 'sharedFlat' : 'property';
+    const fullText = [item.ContactAdTitle].filter(Boolean).join('\n');
+
+    let createdAt: Date | undefined = undefined;
+    if (item.LastRelevantChangeDate) {
+        // The date is in "dd.MM.yyyy HH:mm:ss" format, need to parse it correctly
+        const parts = item.LastRelevantChangeDate.match(/(\d+)/g);
+        if (parts && parts.length >= 5) {
+            // new Date(year, monthIndex, day, hours, minutes, seconds)
+            createdAt = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]), parseInt(parts[3]), parseInt(parts[4]), parseInt(parts[5] || '0'));
+        }
+    }
+
+
+    return {
+        id: `comparis-${item.AdId}`,
+        providers: [{ name: 'Comparis', url: detailUrl }],
+        title: item.ContactAdTitle,
+        description: fullText,
+        price: item.PriceValue,
+        rooms: item.Rooms,
+        size: item.Area,
+        address: `${item.Street}, ${item.Zip} ${item.City}`,
+        lat: item.GeoCoordinates.Latitude,
+        lng: item.GeoCoordinates.Longitude,
+        imageUrl: item.ThumbnailImageUrl || (item.ImageUrls && item.ImageUrls[0]) || '',
+        imageUrls: item.ImageUrls || [],
+        createdAt: createdAt?.toISOString(),
+        type: propertyType,
+        rentalDuration: isTemporaryBasedOnText(fullText) ? 'temporary' : 'permanent',
+        genderPreference: 'any', // Not specified
+    };
+};
+
+/**
+ * Fetches properties from the Comparis API for a given search criteria, handling pagination.
+ */
+async function* _fetchComparisApi(searchCriteria: SearchCriteria, requestManager: RequestManager): AsyncGenerator<ResultAd[]> {
+    let page = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+        if (requestManager.count >= requestManager.limit) {
+            throw new RequestLimitError('Request limit reached for Comparis provider.');
+        }
+
+        const task = async () => {
+            requestManager.count++;
+
+            const requestObject: ResultListRequest = {
+                Page: page,
+                SearchCriteria: searchCriteria,
+                Header: {
+                    Language: 'en',
+                    Locale: 'en-GB',
+                },
+            };
+
+            const url = `https://en.comparis.ch/immobilien/api/mobile/resultlist?requestObject=${encodeURIComponent(JSON.stringify(requestObject))}`;
+
+            try {
+                const response = await fetch(proxy(url), {
+                    headers: getComparisHeaders(),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Comparis API request failed with status ${response.status} (${response.statusText}): ${await response.text()}`);
+                }
+
+                const data: ResultListResponse = await response.json();
+
+                if (data.Header.StatusCode !== 0) {
+                    throw new Error(`Comparis API returned status code ${data.Header.StatusCode} (${data.Header.StatusMessage}): ${data.Header.DebugMessage}`);
+                }
+
+                if (data && data.Ads && data.Ads.length > 0) {
+                    page++;
+                    hasMore = data.CurrentPage < data.TotalPages - 1;
+                    return data.Ads;
+                } else {
+                    hasMore = false;
+                    return [];
+                }
+            } catch (error) {
+                throw new Error('Failed to fetch from Comparis API', { cause: error } );
+            }
+        };
+
+        const ads = await comparisRateLimiter.schedule(task);
+        if (ads.length > 0) {
+            yield ads;
+        }
+    }
 }
 
 export const fetchComparisApi = memoizeGenerator(
     _fetchComparisApi,
-    ( city, bucket ) => {
-        const { id, ...bucketWithoutId } = bucket;
-        return `comparis-api:${city}:${JSON.stringify(bucketWithoutId)}`;
-    },
+    (searchCriteria: SearchCriteria) => `comparis-search-${JSON.stringify(searchCriteria)}`,
     SHORT_CACHE_TTL_MS
 );
