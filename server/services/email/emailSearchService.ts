@@ -8,6 +8,8 @@ import {
 import { streamProperties } from "../search/searchOrchestrator";
 import { enrichItemsWithTravelTimes } from "../api/cachedRoutingApi";
 import { PropertyWithoutCommuteTimes } from "../providers/providerTypes";
+import { getBestTravelTime } from "../../../utils/propertyUtils";
+import { calculateDistance } from "../../../utils/geoUtils";
 
 export interface EmailSearchReport {
   properties: Property[];
@@ -73,19 +75,43 @@ export const fetchNewPropertiesForEmail = async (
     onProgress(
       `Enriching ${properties.length} properties with all travel times...`
     );
-
+    const destinationCoords = report.metadata.destinationCoords as { lat: number; lng: number };
     const fullyEnrichedProperties = await enrichItemsWithTravelTimes(
       properties,
-      report.metadata.destinationCoords as { lat: number; lng: number },
+      destinationCoords,
       ALL_MODES,
       !debugConfig.enabled || debugConfig.queryPublicTransport
     );
-    report.properties = fullyEnrichedProperties.sort(
-      (a, b) =>
-        (b.createdAt ? new Date(b.createdAt).getTime() : 0) -
-        (a.createdAt ? new Date(a.createdAt).getTime() : 0)
-    );
+
+    const sortProperties = (propertiesToSort: Property[]): Property[] => {
+      return [...propertiesToSort].sort((a, b) => {
+        const aBestTime = getBestTravelTime(a, filters.travelModes)?.time ?? Infinity;
+        const bBestTime = getBestTravelTime(b, filters.travelModes)?.time ?? Infinity;
+
+        // Sort by best travel time first
+        if (aBestTime !== bBestTime) {
+          if (aBestTime === Infinity) return 1;
+          if (bBestTime === Infinity) return -1;
+          return aBestTime - bBestTime;
+        }
+
+        // Tie-breaker: if travel times are equal, sort by distance
+        if (destinationCoords) {
+          const distA = calculateDistance({ lat: a.lat, lng: a.lng }, destinationCoords);
+          const distB = calculateDistance({ lat: b.lat, lng: b.lng }, destinationCoords);
+          return distA - distB;
+        }
+
+        // Fallback to sorting by creation date if no other criteria apply
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : -Infinity;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : -Infinity;
+        return timeB - timeA;
+      });
+    };
+
+    report.properties = sortProperties(fullyEnrichedProperties);
   } else {
+    // Sort by creation date if no destination is available
     report.properties = properties.sort(
       (a, b) =>
         (b.createdAt ? new Date(b.createdAt).getTime() : 0) -
