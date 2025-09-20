@@ -69,6 +69,18 @@ export interface WeegeeResponse {
  * Represents the detailed properties of a listing fetched from its detail page JSON.
  * This contains the full set of data available for a property.
  */
+export interface RawWeegeeDetailListingProperties extends Omit<WeegeeDetailListingProperties, 'created'> {
+    /** A machine-readable object indicating when the listing was created. This overwrites the string version from the stub. */
+    created: {
+        unit: 'day' | string;
+        value: number;
+    };
+}
+
+/**
+ * Represents the detailed properties of a listing after being processed.
+ * The `created` field is an absolute ISO timestamp string.
+ */
 export interface WeegeeDetailListingProperties {
     /** The precise latitude coordinate of the property. Example: 46.9637105 */
     address_lat: number;
@@ -90,11 +102,8 @@ export interface WeegeeDetailListingProperties {
     characteristics_livingspace: number | null;
     /** An array of keywords classifying the property. */
     classifications: string[];
-    /** A machine-readable object indicating when the listing was created. This overwrites the string version from the stub. */
-    created: {
-        unit: 'day' | string;
-        value: number;
-    };
+    /** An absolute ISO timestamp string indicating when the listing was created. */
+    created: string;
     /** Flag indicating if the room is furnished. */
     furnished: boolean;
     /** Flag indicating if there is a garden. */
@@ -127,7 +136,14 @@ export interface WeegeeDetailListingProperties {
 export type EnrichedWeegeeListing = Omit<WeegeeListing, 'created'> & WeegeeDetailListingProperties;
 
 
-/** Represents the structure of the JSON response from a listing's detail page. */
+/** Represents the raw structure of the JSON response from a listing's detail page. */
+export interface RawWeegeeDetailResponse {
+    pageProps: {
+        listing: RawWeegeeDetailListingProperties;
+    };
+}
+
+/** Represents the structure of the JSON response from a listing's detail page after processing. */
 export interface WeegeeDetailResponse {
     pageProps: {
         listing: WeegeeDetailListingProperties;

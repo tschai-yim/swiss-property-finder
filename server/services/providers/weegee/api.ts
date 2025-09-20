@@ -2,7 +2,7 @@ import { Property } from '../../../../types';
 import { proxy } from '../../proxy';
 import { PropertyWithoutCommuteTimes, RequestManager } from '../providerTypes';
 import { cacheService, LONG_CACHE_TTL_MS, memoize, SHORT_CACHE_TTL_MS } from '../../cache';
-import { WeegeeListing, WeegeeResponse, WeegeeDetailResponse, EnrichedWeegeeListing } from './types';
+import { WeegeeListing, WeegeeResponse, EnrichedWeegeeListing, RawWeegeeDetailResponse, WeegeeDetailListingProperties } from './types';
 import { RateLimiter } from '../../rateLimiter';
 import { isTemporaryBasedOnText } from '../../../../utils/textUtils';
 import { RequestLimitError } from '../../errors';
@@ -13,7 +13,7 @@ const weegeeRateLimiter = new RateLimiter(2); // 2 requests per second
 const calculateCreatedAt = (created: { unit: string; value: number; }): Date | null => {
     const now = new Date();
     const value = created.value;
-    switch (created.unit) {
+    switch (created.unit.toLowerCase()) {
         case 'minute':
         case 'minutes':
             now.setMinutes(now.getMinutes() - value);
@@ -28,6 +28,10 @@ const calculateCreatedAt = (created: { unit: string; value: number; }): Date | n
             break;
         case 'week':
         case 'weeks':
+            now.setDate(now.getDate() - (value * 7));
+            break;
+        case 'month':
+        case 'months':
             now.setDate(now.getDate() - (value * 7));
             break;
         default:
@@ -70,8 +74,6 @@ export const mapWeegeeToProperty = (item: EnrichedWeegeeListing): PropertyWithou
 
     const detailUrl = `https://www.weegee.ch${item.detail_url}`;
     
-    const creationData = item.created;
-
     const title = item.text_description_extract || `Room in ${item.address_locality}`;
     const fullText = item.text_description_extract || '';
 
@@ -95,7 +97,7 @@ export const mapWeegeeToProperty = (item: EnrichedWeegeeListing): PropertyWithou
         lng: item.address_lon,
         imageUrl: imageUrls[0] || '',
         imageUrls: imageUrls,
-        createdAt: creationData ? (calculateCreatedAt(creationData)?.toISOString() ?? undefined) : undefined,
+        createdAt: item.created,
         type: 'sharedFlat',
         rentalDuration,
         genderPreference: item.women_only ? 'female' : 'any',
@@ -152,25 +154,32 @@ export const fetchWeegeeStubs = memoize(
     SHORT_CACHE_TTL_MS
 );
 
-const _fetchWeegeeDetailById = async (id: string): Promise<WeegeeDetailResponse | null> => {
+const _fetchWeegeeDetailById = async (id: string): Promise<WeegeeDetailListingProperties | null> => {
     const detailUrl = `https://weegee.ch/_next/data/${WEEGEE_BUILD_ID}/en/wg/-/${id}.json`;
     const response = await weegeeRateLimiter.schedule(() => fetch(proxy(detailUrl)));
-    return response.ok ? (await response.json()) as WeegeeDetailResponse : null;
+    if (!response.ok) return null;
+    const rawData = (await response.json()) as RawWeegeeDetailResponse;
+    const rawListing = rawData.pageProps.listing;
+    const createdAt = calculateCreatedAt(rawListing.created);
+    if (!createdAt) throw new Error(`Could not calculate creation date for weegee listing ${id}`);
+    return {
+        ...rawListing,
+        created: createdAt.toISOString(),
+    };
 };
 
 const fetchWeegeeDetailById = memoize(
     _fetchWeegeeDetailById,
-    (id) => `weegee-detail:${id}`,
+    (id) => `weegee-detail-v2:${id}`,
     LONG_CACHE_TTL_MS
 );
 
 export const fetchWeegeeDetails = async (listing: WeegeeListing): Promise<EnrichedWeegeeListing | null> => {
     try {
-        const data = await fetchWeegeeDetailById(listing.public_id);
+        const details = await fetchWeegeeDetailById(listing.public_id);
         
-        if (data) {
-            const detailProps = data.pageProps.listing;
-            return { ...listing, ...detailProps };
+        if (details) {
+            return { ...listing, ...details };
         }
     } catch (e) {
         console.error(`Failed to fetch details for weegee listing ${listing.public_id}`, e);
