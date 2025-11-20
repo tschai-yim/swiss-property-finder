@@ -25,7 +25,7 @@ const getComparisHeaders = () => {
     return {
         'deviceapplicationguid': randomUUID(),
         'bundlename': 'ch.comparis.immoapp',
-        'bundleversion': '9.12.1',
+        'bundleversion': '9.13.0',
         'platform': 'Android',
         'platformversion': '15',
         'device': 'Android',
