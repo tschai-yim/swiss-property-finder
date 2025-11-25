@@ -141,10 +141,10 @@ async function* _fetchComparisApi(searchCriteria: SearchCriteria, requestManager
                 },
             };
 
-            const url = `https://en.comparis.ch/immobilien/api/mobile/resultlist?requestObject=${encodeURIComponent(JSON.stringify(requestObject))}`;
+            const url = proxy(`https://en.comparis.ch/immobilien/api/mobile/resultlist?requestObject=${encodeURIComponent(JSON.stringify(requestObject))}`);
 
             try {
-                const response = await fetch(proxy(url), {
+                const response = await fetch(url, {
                     headers: getComparisHeaders(),
                 });
 
@@ -167,7 +167,7 @@ async function* _fetchComparisApi(searchCriteria: SearchCriteria, requestManager
                     return [];
                 }
             } catch (error) {
-                throw new Error('Failed to fetch from Comparis API', { cause: error } );
+                throw new Error(`Failed to fetch from Comparis API (${url})`, { cause: error } );
             }
         };
 
