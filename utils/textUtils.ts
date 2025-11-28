@@ -26,7 +26,8 @@ const monthMap: { [key: string]: number } = {
  * @returns True if a date indicating a temporary rental is found, false otherwise.
  */
 export const isTemporaryBasedOnText = (text: string): boolean => {
-    if (!text) return false;
+    return false; // Disable temporary detection for now as it also flags temporary sublets that then switch to permanent.
+    /* if (!text) return false;
 
     let match;
     // Reset regex index before each use
@@ -68,5 +69,5 @@ export const isTemporaryBasedOnText = (text: string): boolean => {
             }
         }
     }
-    return false;
+    return false;*/
 };

@@ -34,9 +34,10 @@ export const mapWgZimmerToProperty = (item: WgZimmerRoom): PropertyWithoutCommut
 
     // 2. An explicit 'till' date or a date found in the text is a stronger signal for 'temporary'.
     // It overrides the 'permanent' flag if it indicates a short-term rental.
-    if ((item.till && item.till.trim() !== '') || isTemporaryBasedOnText(fullText)) {
-        rentalDuration = 'temporary';
-    }
+    // Disable for now as it also flags temporary sublets that then switch to permanent.
+    // if ((item.till && item.till.trim() !== '') || isTemporaryBasedOnText(fullText)) {
+    //     rentalDuration = 'temporary';
+    // }
 
     return {
         id: `wgzimmer-${item.id}`,
