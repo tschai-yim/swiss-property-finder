@@ -38,7 +38,7 @@ const getLookbackHours = (scheduleTime: string): number => {
 
   const diffMillis =
     scheduledTimeToday.getTime() - previousScheduledTime.getTime();
-  return diffMillis / (1000 * 60 * 60);
+  return diffMillis / (1000 * 60 * 60) + 0.25; // Add 15 minutes buffer
 };
 
 const performCheck = async (lookbackHours: number) => {
