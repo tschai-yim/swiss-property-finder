@@ -35,8 +35,10 @@ const buildOjpTripRequestXml = (
                     </PlaceRef>
                     <DepArrTime>${timestamp}</DepArrTime>
                     <IndividualTransportOptions>
-                        <Mode>walk</Mode>
-                        <Speed>130</Speed>
+                        <ItModeAndModeOfOperation>
+                            <PersonalMode>foot</PersonalMode>
+                        </ItModeAndModeOfOperation>
+                        <Speed>150</Speed>
                     </IndividualTransportOptions>
                 </Origin>
                 <Destination>
@@ -47,8 +49,10 @@ const buildOjpTripRequestXml = (
                         </GeoPosition>
                     </PlaceRef>
                     <IndividualTransportOptions>
-                        <Mode>walk</Mode>
-                        <Speed>130</Speed>
+                        <ItModeAndModeOfOperation>
+                            <PersonalMode>foot</PersonalMode>
+                        </ItModeAndModeOfOperation>
+                        <Speed>150</Speed>
                     </IndividualTransportOptions>
                 </Destination>
                 <Params>

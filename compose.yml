@@ -6,6 +6,7 @@ services:
       - "${SITE_PORT:-3000}:3000"
     environment:
       - GEOAPIFY_API_KEY=${GEOAPIFY_API_KEY?:"You must set the GEOAPIFY_API_KEY environment variable"}
+      - OJP_API_KEY=${OJP_API_KEY?:"You must set the OJP_API_KEY environment variable"}
       - PROXY_ENABLED
       - EMAIL_SERVICE
       - EMAIL_HOST
