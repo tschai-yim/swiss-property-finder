@@ -84,3 +84,5 @@ export const debugConfig: DebugConfig = getBoolean(
       enabledProviders: ALL_PROVIDERS.map((p) => p.name.toLowerCase()),
       queryPublicTransport: false,
     };
+
+export const ojpApiKey = process.env.OJP_API_KEY;

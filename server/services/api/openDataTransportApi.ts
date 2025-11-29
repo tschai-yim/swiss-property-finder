@@ -1,11 +1,127 @@
 
 import { cacheService, LONG_CACHE_TTL_MS } from '../cache';
 import { RateLimiter } from '../rateLimiter';
+import { ojpApiKey } from '@/utils/env';
 
-const transportApiRateLimiter = new RateLimiter(10); // 10 requests per second
+const transportApiRateLimiter = new RateLimiter(1); // 1 request per second for OJP 2.0
+
+const OJP_API_URL = 'https://api.opentransportdata.swiss/ojp20';
 
 /**
- * Fetches public transport travel time from opendata.transport.ch.
+ * Builds the OJP 2.0 TripRequest XML body for a trip between two coordinates.
+ * Optimized for daily commute scenarios with faster walking speed.
+ */
+const buildOjpTripRequestXml = (
+    from: { lat: number; lng: number },
+    to: { lat: number; lng: number },
+    departureTime: Date
+): string => {
+    const timestamp = departureTime.toISOString();
+    
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<OJP xmlns="http://www.vdv.de/ojp" xmlns:siri="http://www.siri.org.uk/siri" version="2.0">
+    <OJPRequest>
+        <siri:ServiceRequest>
+            <siri:RequestTimestamp>${timestamp}</siri:RequestTimestamp>
+            <siri:RequestorRef>swiss-property-finder_prod</siri:RequestorRef>
+            <OJPTripRequest>
+                <siri:RequestTimestamp>${timestamp}</siri:RequestTimestamp>
+                <Origin>
+                    <PlaceRef>
+                        <GeoPosition>
+                            <siri:Longitude>${from.lng}</siri:Longitude>
+                            <siri:Latitude>${from.lat}</siri:Latitude>
+                        </GeoPosition>
+                    </PlaceRef>
+                    <DepArrTime>${timestamp}</DepArrTime>
+                    <IndividualTransportOptions>
+                        <Mode>walk</Mode>
+                        <Speed>130</Speed>
+                    </IndividualTransportOptions>
+                </Origin>
+                <Destination>
+                    <PlaceRef>
+                        <GeoPosition>
+                            <siri:Longitude>${to.lng}</siri:Longitude>
+                            <siri:Latitude>${to.lat}</siri:Latitude>
+                        </GeoPosition>
+                    </PlaceRef>
+                    <IndividualTransportOptions>
+                        <Mode>walk</Mode>
+                        <Speed>130</Speed>
+                    </IndividualTransportOptions>
+                </Destination>
+                <Params>
+                    <NumberOfResultsBefore>3</NumberOfResultsBefore>
+                    <NumberOfResultsAfter>3</NumberOfResultsAfter>
+                    <IncludeIntermediateStops>false</IncludeIntermediateStops>
+                    <UseRealtimeData>full</UseRealtimeData>
+                </Params>
+            </OJPTripRequest>
+        </siri:ServiceRequest>
+    </OJPRequest>
+</OJP>`;
+};
+
+/**
+ * Parses the OJP 2.0 response XML and extracts trip durations.
+ * Returns the shortest duration in minutes, or null if no trips found.
+ * 
+ * The XML structure is:
+ *   <TripResult>
+ *     <Trip>
+ *       <Id>...</Id>
+ *       <Duration>PT1H7M</Duration>  <!-- Total trip duration (what we want) -->
+ *       <StartTime>...</StartTime>
+ *       <Leg>
+ *         <Duration>PT19M</Duration>  <!-- Leg duration (NOT what we want) -->
+ *       </Leg>
+ *     </Trip>
+ *   </TripResult>
+ */
+const parseOjpResponse = (xmlText: string): number | null => {
+    // Match Trip's Duration which appears directly after <Trip><Id>...</Id>
+    // This is more specific than matching any Duration to avoid leg durations
+    const tripDurationRegex = /<Trip>\s*<Id>[^<]*<\/Id>\s*<Duration>(PT[^<]+)<\/Duration>/g;
+    
+    let shortestDuration: number | null = null;
+    let match;
+    
+    while ((match = tripDurationRegex.exec(xmlText)) !== null) {
+        const durationStr = match[1]; // e.g., "PT6M30S", "PT1H23M", "PT2H"
+        const totalMinutes = parseIsoDuration(durationStr);
+        
+        if (totalMinutes !== null) {
+            if (shortestDuration === null || totalMinutes < shortestDuration) {
+                shortestDuration = totalMinutes;
+            }
+        }
+    }
+    
+    return shortestDuration;
+};
+
+/**
+ * Parses an ISO 8601 duration string (e.g., "PT1H23M30S") into minutes.
+ */
+const parseIsoDuration = (duration: string): number | null => {
+    // Match PT followed by optional hours, minutes, seconds
+    const match = duration.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
+    if (!match) {
+        console.warn(`Could not parse ISO duration: ${duration}`);
+        return null;
+    }
+    
+    const hours = parseInt(match[1] || '0', 10);
+    const minutes = parseInt(match[2] || '0', 10);
+    const seconds = parseInt(match[3] || '0', 10);
+    
+    // Convert to total minutes (round seconds)
+    return hours * 60 + minutes + Math.round(seconds / 60);
+};
+
+/**
+ * Fetches public transport travel time using OJP 2.0 API.
  * Implements a rate limiter and an exponential backoff retry mechanism for 429 errors.
  * @param from The starting coordinates { lat, lng }.
  * @param to The destination coordinates { lat, lng }.
@@ -15,7 +131,12 @@ export const getPublicTransportTime = async (
     from: { lat: number; lng: number },
     to: { lat: number; lng: number }
 ): Promise<number | null> => {
-    const cacheKey = `public-transport:${from.lat},${from.lng}-${to.lat},${to.lng}`;
+    if (!ojpApiKey) {
+        console.error("OJP_API_KEY environment variable is not set");
+        return null;
+    }
+    
+    const cacheKey = `public-transport-ojp2:${from.lat},${from.lng}-${to.lat},${to.lng}`;
     
     return cacheService.getOrSet(cacheKey, async () => {
         // Get next Monday at 08:00 for realistic commute time
@@ -26,21 +147,24 @@ export const getPublicTransportTime = async (
             return date;
         };
 
-        // [YYYY-MM-DD, HH:MM]
-        const [dateStr, timeStr] = getNextMondayMorning().toISOString().slice(0, 16).split('T'); 
-        // Request multiple connections to find the shortest one
-        const apiUrl = `https://transport.opendata.ch/v1/connections?`+
-            `from=${from.lat},${from.lng}&to=${to.lat},${to.lng}&` +
-            `date=${dateStr}&time=${timeStr}&limit=10`;
+        const departureTime = getNextMondayMorning();
+        const requestBody = buildOjpTripRequestXml(from, to, departureTime);
 
         const fetchWithBackoff = async (attempt = 1): Promise<Response> => {
-            const response = await fetch(apiUrl);
+            const response = await fetch(OJP_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/xml',
+                    'Authorization': `Bearer ${ojpApiKey}`,
+                },
+                body: requestBody,
+            });
             
             if (response.status === 429 && attempt <= 3) {
-                // Exponential backoff: e.g., 500ms, 1000ms, 2000ms + jitter
-                const jitter = Math.random() * 250;
-                const delay = Math.pow(2, attempt - 1) * 500 + jitter;
-                console.warn(`Rate limit hit for OpenData Transport. Retrying in ${delay.toFixed(0)}ms...`);
+                // Exponential backoff: e.g., 1000ms, 2000ms, 4000ms + jitter
+                const jitter = Math.random() * 500;
+                const delay = Math.pow(2, attempt - 1) * 1000 + jitter;
+                console.warn(`Rate limit hit for OJP 2.0 API. Retrying in ${delay.toFixed(0)}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
                 return fetchWithBackoff(attempt + 1);
             }
@@ -52,37 +176,27 @@ export const getPublicTransportTime = async (
             const response = await transportApiRateLimiter.schedule(fetchWithBackoff);
             
             if (!response.ok) {
-                console.error(`OpenData Transport API error: ${response.statusText}`);
+                const errorText = await response.text();
+                console.error(`OJP 2.0 API error: ${response.status} ${response.statusText}`, errorText.slice(0, 500));
                 return null;
             }
 
-            const data = await response.json();
-            if (data.connections && data.connections.length > 0) {
-                // Parse all connections and find the shortest one
-                let shortestDuration: number | null = null;
-                
-                for (const connection of data.connections) {
-                    const durationString = connection.duration; // e.g., "00d00:23:00"
-                    const parts = durationString.split(':');
-                    const hours = parseInt(parts[0].slice(-2), 10);
-                    const minutes = parseInt(parts[1], 10);
-                    
-                    if (!isNaN(hours) && !isNaN(minutes)) {
-                        const totalMinutes = hours * 60 + minutes;
-                        if (shortestDuration === null || totalMinutes < shortestDuration) {
-                            shortestDuration = totalMinutes;
-                        }
-                    }
+            const xmlText = await response.text();
+            const shortestDuration = parseOjpResponse(xmlText);
+            
+            if (shortestDuration === null) {
+                // Check if there's an error in the response
+                if (xmlText.includes('<siri:ErrorText>') || xmlText.includes('<ErrorMessage>')) {
+                    console.error("OJP 2.0 API returned an error:", xmlText.slice(0, 1000));
+                } else {
+                    console.log("Public transport time could not be determined from OJP response");
                 }
-                
-                if (shortestDuration === null)
-                    console.log("Public transport time could not be determined:", data);
-                return shortestDuration;
+                return null;
             }
-            console.error("Public transport time got unexpected json:", data);
-            return null;
+            
+            return shortestDuration;
         } catch (error) {
-            console.error("Failed to fetch public transport time:", error);
+            console.error("Failed to fetch public transport time from OJP 2.0:", error);
             return null;
         }
     }, LONG_CACHE_TTL_MS);
